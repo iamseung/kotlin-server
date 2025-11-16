@@ -44,7 +44,8 @@ erDiagram
     CONCERT {
         bigint id PK
         string title
-        string description "nullable"
+        text description "nullable"
+        boolean is_active
         timestamp created_at
         timestamp updated_at
     }
@@ -52,17 +53,18 @@ erDiagram
     CONCERT_SCHEDULE {
         bigint id PK
         bigint concert_id FK
-        date concert_date "콘서트 날짜"
+        date concert_date "콘서트 날짜 (LocalDate)"
+        boolean is_active
         timestamp created_at
         timestamp updated_at
     }
 
     SEAT {
         bigint id PK
-        bigint concert_scheduled_id FK
-        int seat_number "좌석 번호"
-        string seat_status "AVAILABLE, TEMPORARY_RESERVED, RESERVED"
-        int price "좌석 가격"
+        bigint concert_schedule_id FK
+        int seat_number "좌석 번호 (1-50)"
+        string seat_status "AVAILABLE, , RESERVED"
+        int price "좌석 가격 (Int)"
         timestamp created_at
         timestamp updated_at
     }
@@ -72,7 +74,7 @@ erDiagram
         bigint user_id FK
         bigint seat_id FK
         string reservation_status "TEMPORARY, CONFIRMED, EXPIRED, CANCELED"
-        timestamp temporary_reserved_at "임시 배정 시간"
+        timestamp _at "임시 배정 시간"
         timestamp temporary_expired_at "임시 배정 만료 시간 (5분)"
         timestamp created_at
         timestamp updated_at
@@ -114,14 +116,18 @@ erDiagram
 ### CONCERT_SCHEDULE (콘서트 일정)
 - 콘서트별 예약 가능한 날짜 정보
 - 하나의 콘서트는 여러 일정을 가질 수 있음
+- concert_date: LocalDate 타입 (날짜만 저장, 시간 정보 없음)
+- isAvailable: concertDate >= LocalDate.now() 로 판단
 
 ### SEAT (좌석)
 - 콘서트 일정별 좌석 정보
-- 좌석 상태:
+- seat_number: 1-50 범위
+- 좌석 상태 (SeatStatus Enum):
   - AVAILABLE: 예약 가능
-  - TEMPORARY_RESERVED: 임시 배정 (5분간)
+  - : 임시 배정 (5분간)
   - RESERVED: 예약 완료
-- 가격은 Int 타입으로 관리
+- price: Int 타입으로 관리
+- isAvailable: seatStatus == SeatStatus.AVAILABLE 로 판단
 
 ### RESERVATION (예약)
 - 사용자의 좌석 예약 정보

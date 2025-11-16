@@ -1,22 +1,16 @@
-package kr.hhplus.be.server.payment.entity
+package kr.hhplus.be.server.point.entity
 
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import kr.hhplus.be.server.common.BaseEntity
-import kr.hhplus.be.server.user.User
+import kr.hhplus.be.server.payment.entity.TransactionType
+import kr.hhplus.be.server.user.entity.User
 
 @Entity
 class PointHistory(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
-
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     val user: User,
@@ -27,4 +21,13 @@ class PointHistory(
     val transactionType: TransactionType,
 ) : BaseEntity() {
 
+    companion object {
+        fun of(user: User, amount: Int, transactionType: TransactionType): PointHistory {
+            return PointHistory(
+                user = user,
+                amount = amount,
+                transactionType = transactionType,
+            )
+        }
+    }
 }
