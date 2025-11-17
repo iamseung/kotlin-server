@@ -7,6 +7,7 @@ import kr.hhplus.be.server.payment.entity.TransactionType
 import kr.hhplus.be.server.payment.service.PaymentService
 import kr.hhplus.be.server.point.service.PointHistoryService
 import kr.hhplus.be.server.point.service.PointService
+import kr.hhplus.be.server.queue.service.QueueTokenService
 import kr.hhplus.be.server.reservation.service.ReservationService
 import kr.hhplus.be.server.user.entity.User
 import kr.hhplus.be.server.user.service.UserService
@@ -21,9 +22,10 @@ class PaymentUseCase(
     private val pointService: PointService,
     private val pointHistoryService: PointHistoryService,
     private val paymentService: PaymentService,
+    private val queueTokenService: QueueTokenService,
 ) {
 
-    fun processPayment(userId: Long, reservationId: Long): PaymentResponse {
+    fun processPayment(userId: Long, reservationId: Long, queueToken: String): PaymentResponse {
         val user = userService.getUser(userId)
         val reservation = reservationService.findById(reservationId)
 
@@ -41,6 +43,10 @@ class PaymentUseCase(
         // 예약 및 좌석 확정
         seat.confirmReservation()
         reservation.confirmPayment()
+
+        // 대기열 토큰 만료 처리
+        val token = queueTokenService.getQueueTokenByToken(queueToken)
+        queueTokenService.expireQueueToken(token)
 
         return PaymentResponse.from(payment)
     }

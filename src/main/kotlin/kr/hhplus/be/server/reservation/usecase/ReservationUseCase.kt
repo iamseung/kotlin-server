@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.reservation.usecase
 
 import kr.hhplus.be.server.concert.service.SeatService
+import kr.hhplus.be.server.queue.service.QueueTokenService
 import kr.hhplus.be.server.reservation.dto.response.ReservationResponse
 import kr.hhplus.be.server.reservation.entity.Reservation
 import kr.hhplus.be.server.reservation.service.ReservationService
@@ -13,6 +14,7 @@ class ReservationUseCase(
     private val userService: UserService,
     private val seatService: SeatService,
     private val reservationService: ReservationService,
+    private val queueTokenService: QueueTokenService,
 ) {
 
     @Transactional(readOnly = true)
@@ -28,9 +30,14 @@ class ReservationUseCase(
         userId: Long,
         scheduleId: Long,
         seatId: Long,
+        queueToken: String,
     ): ReservationResponse {
         val user = userService.getUser(userId)
         val seat = seatService.findByIdAndConcertScheduleId(seatId, scheduleId)
+
+        // 대기열 토큰 검증 (인터셉터에서도 검증하지만 명시적으로 한 번 더 검증)
+        val token = queueTokenService.getQueueTokenByToken(queueToken)
+        token.validateActive()
 
         // 좌석 사용 가능 여부 검증
         seat.validateAvailable()

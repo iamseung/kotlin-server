@@ -58,8 +58,12 @@ class PaymentController(
     fun processPayment(
         @Parameter(description = "사용자 ID", required = true, `in` = ParameterIn.HEADER)
         @RequestHeader("User-Id") userId: Long,
+
+        @Parameter(description = "대기열 토큰 (UUID 형식)", required = true, `in` = ParameterIn.HEADER)
+        @RequestHeader("X-Queue-Token") queueToken: String,
+
         @RequestBody request: ProcessPaymentRequest,
     ): PaymentResponse {
-        return paymentUseCase.processPayment(userId, request.reservationId)
+        return paymentUseCase.processPayment(userId, request.reservationId, queueToken)
     }
 }

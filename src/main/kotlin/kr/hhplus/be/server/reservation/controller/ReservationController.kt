@@ -100,8 +100,8 @@ class ReservationController(
         @RequestHeader("X-Queue-Token") queueToken: String,
 
         @RequestBody request: CreateReservationRequest
-    ) {
-        reservationService.createReservation(request.userId, request.scheduleId, request.seatId)
+    ): ReservationResponse {
+        return reservationService.createReservation(request.userId, request.scheduleId, request.seatId, queueToken)
     }
 
 }
