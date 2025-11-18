@@ -18,13 +18,6 @@ class Payment private constructor(
     }
 
     fun getId(): Long? = id
-    fun getReservationId(): Long = reservationId
-    fun getUserId(): Long = userId
-    fun getAmount(): Int = amount
-    fun getPaymentStatus(): PaymentStatus = paymentStatus
-    fun getPaymentAt(): LocalDateTime = paymentAt
-    fun getCreatedAt(): LocalDateTime = createdAt
-    fun getUpdatedAt(): LocalDateTime = updatedAt
 
     companion object {
         fun create(reservationId: Long, userId: Long, amount: Int): Payment {

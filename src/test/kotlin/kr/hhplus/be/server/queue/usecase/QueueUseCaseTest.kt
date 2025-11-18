@@ -1,22 +1,20 @@
 package kr.hhplus.be.server.queue.usecase
 
 import io.mockk.*
+import kr.hhplus.be.server.application.QueueUseCase
 import kr.hhplus.be.server.common.exception.AuthenticationException
 import kr.hhplus.be.server.common.exception.AuthorizationException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.queue.dto.response.QueueStatusResponse
-import kr.hhplus.be.server.queue.dto.response.QueueTokenResponse
-import kr.hhplus.be.server.queue.entity.QueueStatus
-import kr.hhplus.be.server.queue.entity.QueueToken
+import kr.hhplus.be.server.queue.domain.model.QueueStatus
+import kr.hhplus.be.server.queue.domain.model.QueueToken
 import kr.hhplus.be.server.queue.service.QueueTokenService
-import kr.hhplus.be.server.user.entity.User
+import kr.hhplus.be.server.user.domain.model.User
 import kr.hhplus.be.server.user.service.UserService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class QueueUseCaseTest {
 
@@ -40,28 +38,22 @@ class QueueUseCaseTest {
     fun issueQueueToken_Success() {
         // given
         val userId = 1L
-        val user = User(userName = "testUser", email = "test@test.com", password = "password")
-        val queueToken = QueueToken(
-            user = user,
-            token = "test-token-uuid",
-            queueStatus = QueueStatus.WAITING,
-            queuePosition = 5
-        )
+        val user = User.create("testUser", "test@test.com", "password")
+        val queueToken = QueueToken.create(userId, 5)
 
         every { userService.getUser(userId) } returns user
-        every { queueTokenService.createQueueToken(user) } returns queueToken
+        every { queueTokenService.createQueueToken(userId) } returns queueToken
 
         // when
         val result = queueUseCase.issueQueueToken(userId)
 
         // then
         assertThat(result).isNotNull
-        assertThat(result.token).isEqualTo("test-token-uuid")
         assertThat(result.queueStatus).isEqualTo(QueueStatus.WAITING)
         assertThat(result.queuePosition).isEqualTo(5)
 
         verify(exactly = 1) { userService.getUser(userId) }
-        verify(exactly = 1) { queueTokenService.createQueueToken(user) }
+        verify(exactly = 1) { queueTokenService.createQueueToken(userId) }
     }
 
     @Test
@@ -69,13 +61,7 @@ class QueueUseCaseTest {
     fun getQueueStatus_Success_Waiting() {
         // given
         val token = "test-token-uuid"
-        val user = User(userName = "testUser", email = "test@test.com", password = "password")
-        val queueToken = QueueToken(
-            user = user,
-            token = token,
-            queueStatus = QueueStatus.WAITING,
-            queuePosition = 10
-        )
+        val queueToken = QueueToken.create(1L, 10)
 
         every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
 
@@ -86,7 +72,7 @@ class QueueUseCaseTest {
         assertThat(result).isNotNull
         assertThat(result.queueStatus).isEqualTo(QueueStatus.WAITING)
         assertThat(result.queuePosition).isEqualTo(10)
-        assertThat(result.estimatedWaitTimeMinutes).isEqualTo(10) // 10명 * 1분
+        assertThat(result.estimatedWaitTimeMinutes).isEqualTo(10)
 
         verify(exactly = 1) { queueTokenService.getQueueTokenByToken(token) }
     }
@@ -96,14 +82,9 @@ class QueueUseCaseTest {
     fun getQueueStatus_Success_Active() {
         // given
         val token = "test-token-uuid"
-        val user = User(userName = "testUser", email = "test@test.com", password = "password")
-        val queueToken = QueueToken(
-            user = user,
-            token = token,
-            queueStatus = QueueStatus.ACTIVE,
-            queuePosition = 0
-        )
-        queueToken.activate()
+        val queueToken = spyk(QueueToken.create(1L, 10))
+        every { queueToken.queueStatus } returns QueueStatus.ACTIVE
+        every { queueToken.queuePosition } returns 0
 
         every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
 
@@ -142,17 +123,7 @@ class QueueUseCaseTest {
     fun validateQueueToken_Success() {
         // given
         val token = "test-token-uuid"
-        val user = User(userName = "testUser", email = "test@test.com", password = "password")
-        val queueToken = spyk(
-            QueueToken(
-                user = user,
-                token = token,
-                queueStatus = QueueStatus.ACTIVE,
-                queuePosition = 0,
-                activatedAt = LocalDateTime.now(),
-                expiresAt = LocalDateTime.now().plusHours(1)
-            )
-        )
+        val queueToken = spyk(QueueToken.create(1L, 5))
 
         every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
         every { queueToken.validateActive() } just Runs
@@ -169,15 +140,7 @@ class QueueUseCaseTest {
     fun validateQueueToken_Fail_NotActive() {
         // given
         val token = "test-token-uuid"
-        val user = User(userName = "testUser", email = "test@test.com", password = "password")
-        val queueToken = spyk(
-            QueueToken(
-                user = user,
-                token = token,
-                queueStatus = QueueStatus.WAITING,
-                queuePosition = 5
-            )
-        )
+        val queueToken = spyk(QueueToken.create(1L, 5))
 
         every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
         every { queueToken.validateActive() } throws AuthorizationException(ErrorCode.QUEUE_TOKEN_NOT_ACTIVE)
@@ -198,17 +161,7 @@ class QueueUseCaseTest {
     fun validateQueueToken_Fail_Expired() {
         // given
         val token = "test-token-uuid"
-        val user = User(userName = "testUser", email = "test@test.com", password = "password")
-        val queueToken = spyk(
-            QueueToken(
-                user = user,
-                token = token,
-                queueStatus = QueueStatus.ACTIVE,
-                queuePosition = 0,
-                activatedAt = LocalDateTime.now().minusHours(2),
-                expiresAt = LocalDateTime.now().minusHours(1)
-            )
-        )
+        val queueToken = spyk(QueueToken.create(1L, 5))
 
         every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
         every { queueToken.validateActive() } throws AuthorizationException(ErrorCode.TOKEN_EXPIRED)

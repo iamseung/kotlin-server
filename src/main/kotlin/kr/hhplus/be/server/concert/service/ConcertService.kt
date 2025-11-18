@@ -1,8 +1,7 @@
 package kr.hhplus.be.server.concert.service
 
-import kr.hhplus.be.server.common.util.findByIdOrThrow
-import kr.hhplus.be.server.concert.entity.Concert
-import kr.hhplus.be.server.concert.repository.ConcertRepository
+import kr.hhplus.be.server.concert.domain.model.Concert
+import kr.hhplus.be.server.concert.domain.repository.ConcertRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

@@ -61,14 +61,6 @@ class QueueToken private constructor(
     }
 
     fun getId(): Long? = id
-    fun getUserId(): Long = userId
-    fun getToken(): String = token
-    fun getQueueStatus(): QueueStatus = queueStatus
-    fun getQueuePosition(): Int = queuePosition
-    fun getActivatedAt(): LocalDateTime? = activatedAt
-    fun getExpiresAt(): LocalDateTime? = expiresAt
-    fun getCreatedAt(): LocalDateTime = createdAt
-    fun getUpdatedAt(): LocalDateTime = updatedAt
 
     companion object {
         fun create(userId: Long, position: Int): QueueToken {

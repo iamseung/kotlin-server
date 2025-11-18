@@ -42,12 +42,6 @@ class Seat private constructor(
     }
 
     fun getId(): Long? = id
-    fun getConcertScheduleId(): Long = concertScheduleId
-    fun getSeatNumber(): Int = seatNumber
-    fun getSeatStatus(): SeatStatus = seatStatus
-    fun getPrice(): Int = price
-    fun getCreatedAt(): LocalDateTime = createdAt
-    fun getUpdatedAt(): LocalDateTime = updatedAt
 
     companion object {
         fun create(concertScheduleId: Long, seatNumber: Int, price: Int): Seat {

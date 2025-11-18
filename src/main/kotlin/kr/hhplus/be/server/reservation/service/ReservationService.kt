@@ -1,8 +1,7 @@
 package kr.hhplus.be.server.reservation.service
 
-import kr.hhplus.be.server.common.util.findByIdOrThrow
-import kr.hhplus.be.server.reservation.entity.Reservation
-import kr.hhplus.be.server.reservation.repository.ReservationRepository
+import kr.hhplus.be.server.reservation.domain.model.Reservation
+import kr.hhplus.be.server.reservation.domain.repository.ReservationRepository
 import org.springframework.stereotype.Service
 
 @Service

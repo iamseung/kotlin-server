@@ -1,12 +1,13 @@
 package kr.hhplus.be.server.concert.usecase
 
 import io.mockk.*
-import kr.hhplus.be.server.concert.entity.Concert
-import kr.hhplus.be.server.concert.entity.ConcertSchedule
-import kr.hhplus.be.server.concert.entity.Seat
-import kr.hhplus.be.server.concert.entity.SeatStatus
+import kr.hhplus.be.server.application.ConcertScheduleUseCase
+import kr.hhplus.be.server.concert.domain.model.Concert
+import kr.hhplus.be.server.concert.domain.model.ConcertSchedule
+import kr.hhplus.be.server.concert.domain.model.Seat
 import kr.hhplus.be.server.concert.service.ConcertScheduleService
 import kr.hhplus.be.server.concert.service.ConcertService
+import kr.hhplus.be.server.concert.service.SeatService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -18,15 +19,18 @@ class ConcertScheduleUseCaseTest {
     private lateinit var concertScheduleUseCase: ConcertScheduleUseCase
     private lateinit var concertService: ConcertService
     private lateinit var concertScheduleService: ConcertScheduleService
+    private lateinit var seatService: SeatService
 
     @BeforeEach
     fun setUp() {
         concertService = mockk()
         concertScheduleService = mockk()
+        seatService = mockk()
 
         concertScheduleUseCase = ConcertScheduleUseCase(
             concertService = concertService,
             concertScheduleService = concertScheduleService,
+            seatService = seatService,
         )
     }
 
@@ -35,19 +39,15 @@ class ConcertScheduleUseCaseTest {
     fun getAvailableSchedules_Success() {
         // given
         val concertId = 1L
-        val concert = Concert(title = "Test Concert", description = "Test Description")
-        val schedule1 = ConcertSchedule(
-            concert = concert,
-            concertDate = LocalDate.now().plusDays(10),
-        )
-        val schedule2 = ConcertSchedule(
-            concert = concert,
-            concertDate = LocalDate.now().plusDays(20),
-        )
+        val concert = Concert.create("Test Concert", "Test Description")
+        val schedule1 = spyk(ConcertSchedule.create(concertId, LocalDate.now().plusDays(10)))
+        val schedule2 = spyk(ConcertSchedule.create(concertId, LocalDate.now().plusDays(20)))
         val schedules = listOf(schedule1, schedule2)
 
+        every { schedule1.isAvailable } returns true
+        every { schedule2.isAvailable } returns true
         every { concertService.getConcert(concertId) } returns concert
-        every { concertScheduleService.findByConcertId(concert.id) } returns schedules
+        every { concertScheduleService.findByConcertId(concertId) } returns schedules
 
         // when
         val result = concertScheduleUseCase.getAvailableSchedules(concertId)
@@ -55,7 +55,7 @@ class ConcertScheduleUseCaseTest {
         // then
         assertThat(result).hasSize(2)
         verify(exactly = 1) { concertService.getConcert(concertId) }
-        verify(exactly = 1) { concertScheduleService.findByConcertId(concert.id) }
+        verify(exactly = 1) { concertScheduleService.findByConcertId(concertId) }
     }
 
     @Test
@@ -63,27 +63,23 @@ class ConcertScheduleUseCaseTest {
     fun getAvailableSchedules_FilterExpired() {
         // given
         val concertId = 1L
-        val concert = Concert(title = "Test Concert", description = "Test Description")
-        val availableSchedule = ConcertSchedule(
-            concert = concert,
-            concertDate = LocalDate.now().plusDays(10),
-        )
-        val expiredSchedule = ConcertSchedule(
-            concert = concert,
-            concertDate = LocalDate.now().minusDays(1), // 만료된 일정
-        )
+        val concert = Concert.create("Test Concert", "Test Description")
+        val availableSchedule = spyk(ConcertSchedule.create(concertId, LocalDate.now().plusDays(10)))
+        val expiredSchedule = spyk(ConcertSchedule.create(concertId, LocalDate.now().minusDays(1)))
         val schedules = listOf(availableSchedule, expiredSchedule)
 
+        every { availableSchedule.isAvailable } returns true
+        every { expiredSchedule.isAvailable } returns false
         every { concertService.getConcert(concertId) } returns concert
-        every { concertScheduleService.findByConcertId(concert.id) } returns schedules
+        every { concertScheduleService.findByConcertId(concertId) } returns schedules
 
         // when
         val result = concertScheduleUseCase.getAvailableSchedules(concertId)
 
         // then
-        assertThat(result).hasSize(1) // 만료된 일정은 제외됨
+        assertThat(result).hasSize(1)
         verify(exactly = 1) { concertService.getConcert(concertId) }
-        verify(exactly = 1) { concertScheduleService.findByConcertId(concert.id) }
+        verify(exactly = 1) { concertScheduleService.findByConcertId(concertId) }
     }
 
     @Test
@@ -91,19 +87,15 @@ class ConcertScheduleUseCaseTest {
     fun getAvailableSchedules_EmptyWhenAllExpired() {
         // given
         val concertId = 1L
-        val concert = Concert(title = "Test Concert", description = "Test Description")
-        val expiredSchedule1 = ConcertSchedule(
-            concert = concert,
-            concertDate = LocalDate.now().minusDays(10),
-        )
-        val expiredSchedule2 = ConcertSchedule(
-            concert = concert,
-            concertDate = LocalDate.now().minusDays(5),
-        )
+        val concert = Concert.create("Test Concert", "Test Description")
+        val expiredSchedule1 = spyk(ConcertSchedule.create(concertId, LocalDate.now().minusDays(10)))
+        val expiredSchedule2 = spyk(ConcertSchedule.create(concertId, LocalDate.now().minusDays(5)))
         val schedules = listOf(expiredSchedule1, expiredSchedule2)
 
+        every { expiredSchedule1.isAvailable } returns false
+        every { expiredSchedule2.isAvailable } returns false
         every { concertService.getConcert(concertId) } returns concert
-        every { concertScheduleService.findByConcertId(concert.id) } returns schedules
+        every { concertScheduleService.findByConcertId(concertId) } returns schedules
 
         // when
         val result = concertScheduleUseCase.getAvailableSchedules(concertId)
@@ -111,7 +103,7 @@ class ConcertScheduleUseCaseTest {
         // then
         assertThat(result).isEmpty()
         verify(exactly = 1) { concertService.getConcert(concertId) }
-        verify(exactly = 1) { concertScheduleService.findByConcertId(concert.id) }
+        verify(exactly = 1) { concertScheduleService.findByConcertId(concertId) }
     }
 
     @Test
@@ -120,27 +112,17 @@ class ConcertScheduleUseCaseTest {
         // given
         val concertId = 1L
         val scheduleId = 1L
-        val concert = Concert(title = "Test Concert", description = "Test Description")
-        val schedule = ConcertSchedule(
-            concert = concert,
-            concertDate = LocalDate.now().plusDays(10),
-        )
-        val seat1 = Seat(
-            concertSchedule = schedule,
-            seatNumber = 1,
-            seatStatus = SeatStatus.AVAILABLE,
-            price = 50000,
-        )
-        val seat2 = Seat(
-            concertSchedule = schedule,
-            seatNumber = 2,
-            seatStatus = SeatStatus.AVAILABLE,
-            price = 50000,
-        )
-        schedule.seats.addAll(listOf(seat1, seat2))
+        val concert = Concert.create("Test Concert", "Test Description")
+        val schedule = ConcertSchedule.create(concertId, LocalDate.now().plusDays(10))
+        val seat1 = spyk(Seat.create(scheduleId, 1, 50000))
+        val seat2 = spyk(Seat.create(scheduleId, 2, 50000))
+        val seats = listOf(seat1, seat2)
 
+        every { seat1.isAvailable } returns true
+        every { seat2.isAvailable } returns true
         every { concertService.getConcert(concertId) } returns concert
-        every { concertScheduleService.findByConcertIdAndId(concert.id, scheduleId) } returns schedule
+        every { concertScheduleService.findByConcertIdAndId(concertId, scheduleId) } returns schedule
+        every { seatService.findAllByConcertScheduleId(scheduleId) } returns seats
 
         // when
         val result = concertScheduleUseCase.getAvailableSeats(concertId, scheduleId)
@@ -148,7 +130,7 @@ class ConcertScheduleUseCaseTest {
         // then
         assertThat(result).hasSize(2)
         verify(exactly = 1) { concertService.getConcert(concertId) }
-        verify(exactly = 1) { concertScheduleService.findByConcertIdAndId(concert.id, scheduleId) }
+        verify(exactly = 1) { concertScheduleService.findByConcertIdAndId(concertId, scheduleId) }
     }
 
     @Test
@@ -157,41 +139,27 @@ class ConcertScheduleUseCaseTest {
         // given
         val concertId = 1L
         val scheduleId = 1L
-        val concert = Concert(title = "Test Concert", description = "Test Description")
-        val schedule = ConcertSchedule(
-            concert = concert,
-            concertDate = LocalDate.now().plusDays(10),
-        )
-        val availableSeat = Seat(
-            concertSchedule = schedule,
-            seatNumber = 1,
-            seatStatus = SeatStatus.AVAILABLE,
-            price = 50000,
-        )
-        val reservedSeat = Seat(
-            concertSchedule = schedule,
-            seatNumber = 2,
-            seatStatus = SeatStatus.RESERVED, // 예약된 좌석
-            price = 50000,
-        )
-        val temporarySeat = Seat(
-            concertSchedule = schedule,
-            seatNumber = 3,
-            seatStatus = SeatStatus.TEMPORARY_RESERVED, // 임시 예약 좌석
-            price = 50000,
-        )
-        schedule.seats.addAll(listOf(availableSeat, reservedSeat, temporarySeat))
+        val concert = Concert.create("Test Concert", "Test Description")
+        val schedule = ConcertSchedule.create(concertId, LocalDate.now().plusDays(10))
+        val availableSeat = spyk(Seat.create(scheduleId, 1, 50000))
+        val reservedSeat = spyk(Seat.create(scheduleId, 2, 50000))
+        val temporarySeat = spyk(Seat.create(scheduleId, 3, 50000))
+        val seats = listOf(availableSeat, reservedSeat, temporarySeat)
 
+        every { availableSeat.isAvailable } returns true
+        every { reservedSeat.isAvailable } returns false
+        every { temporarySeat.isAvailable } returns false
         every { concertService.getConcert(concertId) } returns concert
-        every { concertScheduleService.findByConcertIdAndId(concert.id, scheduleId) } returns schedule
+        every { concertScheduleService.findByConcertIdAndId(concertId, scheduleId) } returns schedule
+        every { seatService.findAllByConcertScheduleId(scheduleId) } returns seats
 
         // when
         val result = concertScheduleUseCase.getAvailableSeats(concertId, scheduleId)
 
         // then
-        assertThat(result).hasSize(1) // 예약된 좌석과 임시 예약 좌석은 제외됨
+        assertThat(result).hasSize(1)
         verify(exactly = 1) { concertService.getConcert(concertId) }
-        verify(exactly = 1) { concertScheduleService.findByConcertIdAndId(concert.id, scheduleId) }
+        verify(exactly = 1) { concertScheduleService.findByConcertIdAndId(concertId, scheduleId) }
     }
 
     @Test
@@ -200,27 +168,17 @@ class ConcertScheduleUseCaseTest {
         // given
         val concertId = 1L
         val scheduleId = 1L
-        val concert = Concert(title = "Test Concert", description = "Test Description")
-        val schedule = ConcertSchedule(
-            concert = concert,
-            concertDate = LocalDate.now().plusDays(10),
-        )
-        val reservedSeat1 = Seat(
-            concertSchedule = schedule,
-            seatNumber = 1,
-            seatStatus = SeatStatus.RESERVED,
-            price = 50000,
-        )
-        val reservedSeat2 = Seat(
-            concertSchedule = schedule,
-            seatNumber = 2,
-            seatStatus = SeatStatus.RESERVED,
-            price = 50000,
-        )
-        schedule.seats.addAll(listOf(reservedSeat1, reservedSeat2))
+        val concert = Concert.create("Test Concert", "Test Description")
+        val schedule = ConcertSchedule.create(concertId, LocalDate.now().plusDays(10))
+        val reservedSeat1 = spyk(Seat.create(scheduleId, 1, 50000))
+        val reservedSeat2 = spyk(Seat.create(scheduleId, 2, 50000))
+        val seats = listOf(reservedSeat1, reservedSeat2)
 
+        every { reservedSeat1.isAvailable } returns false
+        every { reservedSeat2.isAvailable } returns false
         every { concertService.getConcert(concertId) } returns concert
-        every { concertScheduleService.findByConcertIdAndId(concert.id, scheduleId) } returns schedule
+        every { concertScheduleService.findByConcertIdAndId(concertId, scheduleId) } returns schedule
+        every { seatService.findAllByConcertScheduleId(scheduleId) } returns seats
 
         // when
         val result = concertScheduleUseCase.getAvailableSeats(concertId, scheduleId)
@@ -228,6 +186,6 @@ class ConcertScheduleUseCaseTest {
         // then
         assertThat(result).isEmpty()
         verify(exactly = 1) { concertService.getConcert(concertId) }
-        verify(exactly = 1) { concertScheduleService.findByConcertIdAndId(concert.id, scheduleId) }
+        verify(exactly = 1) { concertScheduleService.findByConcertIdAndId(concertId, scheduleId) }
     }
 }

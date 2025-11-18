@@ -15,10 +15,6 @@ class Concert private constructor(
     }
 
     fun getId(): Long? = id
-    fun getTitle(): String = title
-    fun getDescription(): String? = description
-    fun getCreatedAt(): LocalDateTime = createdAt
-    fun getUpdatedAt(): LocalDateTime = updatedAt
 
     companion object {
         fun create(title: String, description: String?): Concert {

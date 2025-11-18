@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.payment.service
 
-import kr.hhplus.be.server.payment.entity.Payment
-import kr.hhplus.be.server.payment.repository.PaymentRepository
+import kr.hhplus.be.server.payment.domain.model.Payment
+import kr.hhplus.be.server.payment.domain.repository.PaymentRepository
 import org.springframework.stereotype.Service
 
 @Service

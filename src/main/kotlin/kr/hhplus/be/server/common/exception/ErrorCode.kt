@@ -18,11 +18,14 @@ enum class ErrorCode(
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다"),
     ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 엔티티를 찾을 수 없습니다"),
     CONCERT_NOT_FOUND(HttpStatus.NOT_FOUND, "콘서트를 찾을 수 없습니다"),
+    CONCERT_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "콘서트 일정을 찾을 수 없습니다"),
     SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "콘서트 일정을 찾을 수 없습니다"),
     SEAT_NOT_FOUND(HttpStatus.NOT_FOUND, "좌석을 찾을 수 없습니다"),
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다"),
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 정보를 찾을 수 없습니다"),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다"),
     POINT_NOT_FOUND(HttpStatus.NOT_FOUND, "포인트 정보를 찾을 수 없습니다"),
+    QUEUE_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "대기열 토큰을 찾을 수 없습니다"),
 
     // Authentication & Authorization (401, 403)
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증에 실패했습니다"),

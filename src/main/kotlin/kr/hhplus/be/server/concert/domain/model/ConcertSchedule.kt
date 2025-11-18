@@ -27,10 +27,6 @@ class ConcertSchedule private constructor(
     }
 
     fun getId(): Long? = id
-    fun getConcertId(): Long = concertId
-    fun getConcertDate(): LocalDate = concertDate
-    fun getCreatedAt(): LocalDateTime = createdAt
-    fun getUpdatedAt(): LocalDateTime = updatedAt
 
     companion object {
         fun create(concertId: Long, concertDate: LocalDate): ConcertSchedule {

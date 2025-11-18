@@ -38,13 +38,6 @@ class Reservation private constructor(
     }
 
     fun getId(): Long? = id
-    fun getUserId(): Long = userId
-    fun getSeatId(): Long = seatId
-    fun getReservationStatus(): ReservationStatus = reservationStatus
-    fun getTemporaryReservedAt(): LocalDateTime = temporaryReservedAt
-    fun getTemporaryExpiredAt(): LocalDateTime = temporaryExpiredAt
-    fun getCreatedAt(): LocalDateTime = createdAt
-    fun getUpdatedAt(): LocalDateTime = updatedAt
 
     companion object {
         fun create(userId: Long, seatId: Long): Reservation {

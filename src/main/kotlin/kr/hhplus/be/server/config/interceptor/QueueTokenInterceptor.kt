@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import kr.hhplus.be.server.common.exception.AuthenticationException
 import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.queue.usecase.QueueUseCase
+import kr.hhplus.be.server.application.QueueUseCase
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 

@@ -42,10 +42,6 @@ class Point private constructor(
     }
 
     fun getId(): Long? = id
-    fun getUserId(): Long = userId
-    fun getBalance(): Int = balance
-    fun getCreatedAt(): LocalDateTime = createdAt
-    fun getUpdatedAt(): LocalDateTime = updatedAt
 
     companion object {
         fun create(userId: Long, balance: Int = 0): Point {

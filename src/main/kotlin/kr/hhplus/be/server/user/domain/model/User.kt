@@ -16,11 +16,6 @@ class User private constructor(
     }
 
     fun getId(): Long? = id
-    fun getUserName(): String = userName
-    fun getEmail(): String = email
-    fun getPassword(): String = password
-    fun getCreatedAt(): LocalDateTime = createdAt
-    fun getUpdatedAt(): LocalDateTime = updatedAt
 
     companion object {
         fun create(userName: String, email: String, password: String): User {
