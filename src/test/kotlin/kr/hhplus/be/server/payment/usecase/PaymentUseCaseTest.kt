@@ -13,6 +13,7 @@ import kr.hhplus.be.server.payment.service.PaymentService
 import kr.hhplus.be.server.point.entity.Point
 import kr.hhplus.be.server.point.service.PointHistoryService
 import kr.hhplus.be.server.point.service.PointService
+import kr.hhplus.be.server.queue.service.QueueTokenService
 import kr.hhplus.be.server.reservation.entity.Reservation
 import kr.hhplus.be.server.reservation.service.ReservationService
 import kr.hhplus.be.server.user.entity.User
@@ -32,6 +33,7 @@ class PaymentUseCaseTest {
     private lateinit var pointService: PointService
     private lateinit var pointHistoryService: PointHistoryService
     private lateinit var paymentService: PaymentService
+    private lateinit var queueTokenService: QueueTokenService
 
     @BeforeEach
     fun setUp() {
@@ -40,6 +42,7 @@ class PaymentUseCaseTest {
         pointService = mockk()
         pointHistoryService = mockk()
         paymentService = mockk()
+        queueTokenService = mockk()
 
         paymentUseCase = PaymentUseCase(
             userService = userService,
@@ -47,6 +50,7 @@ class PaymentUseCaseTest {
             pointService = pointService,
             pointHistoryService = pointHistoryService,
             paymentService = paymentService,
+            queueTokenService = queueTokenService,
         )
     }
 
@@ -72,15 +76,18 @@ class PaymentUseCaseTest {
         val reservation = Reservation.of(user, seat)
         val point = Point(user = user, balance = 100000)
         val payment = Payment.of(reservation, user, seat.price)
+        val queueToken = "test-queue-token"
 
         every { userService.getUser(userId) } returns user
         every { reservationService.findById(reservationId) } returns reservation
         every { pointService.usePoint(user.id, seat.price) } returns point
         every { pointHistoryService.savePointHistory(user, seat.price, TransactionType.USE) } just Runs
         every { paymentService.savePayment(any()) } returns payment
+        every { queueTokenService.getQueueTokenByToken(queueToken) } returns mockk(relaxed = true)
+        every { queueTokenService.expireQueueToken(any()) } returns mockk(relaxed = true)
 
         // when
-        val result = paymentUseCase.processPayment(userId, reservationId)
+        val result = paymentUseCase.processPayment(userId, reservationId, queueToken)
 
         // then
         assertThat(result).isNotNull
@@ -118,13 +125,14 @@ class PaymentUseCaseTest {
         )
         val reservation = spyk(Reservation.of(otherUser, seat))
         every { reservation.user } returns otherUser
+        val queueToken = "test-queue-token"
 
         every { userService.getUser(userId) } returns user
         every { reservationService.findById(reservationId) } returns reservation
 
         // when & then
         assertThatThrownBy {
-            paymentUseCase.processPayment(userId, reservationId)
+            paymentUseCase.processPayment(userId, reservationId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_RESERVATION)
 
@@ -160,13 +168,14 @@ class PaymentUseCaseTest {
         every { reservation.seat } returns seat
         every { reservation.validateOwnership(userId) } just Runs
         every { reservation.validatePayable() } throws BusinessException(ErrorCode.INVALID_RESERVATION_STATUS)
+        val queueToken = "test-queue-token"
 
         every { userService.getUser(userId) } returns user
         every { reservationService.findById(reservationId) } returns reservation
 
         // when & then
         assertThatThrownBy {
-            paymentUseCase.processPayment(userId, reservationId)
+            paymentUseCase.processPayment(userId, reservationId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_RESERVATION_STATUS)
 
@@ -198,6 +207,7 @@ class PaymentUseCaseTest {
             price = 50000,
         )
         val reservation = Reservation.of(user, seat)
+        val queueToken = "test-queue-token"
 
         every { userService.getUser(userId) } returns user
         every { reservationService.findById(reservationId) } returns reservation
@@ -205,7 +215,7 @@ class PaymentUseCaseTest {
 
         // when & then
         assertThatThrownBy {
-            paymentUseCase.processPayment(userId, reservationId)
+            paymentUseCase.processPayment(userId, reservationId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INSUFFICIENT_POINTS)
 

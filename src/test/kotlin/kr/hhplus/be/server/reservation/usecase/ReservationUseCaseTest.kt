@@ -7,6 +7,7 @@ import kr.hhplus.be.server.concert.entity.ConcertSchedule
 import kr.hhplus.be.server.concert.entity.Seat
 import kr.hhplus.be.server.concert.entity.SeatStatus
 import kr.hhplus.be.server.concert.service.SeatService
+import kr.hhplus.be.server.queue.service.QueueTokenService
 import kr.hhplus.be.server.reservation.entity.Reservation
 import kr.hhplus.be.server.reservation.service.ReservationService
 import kr.hhplus.be.server.user.entity.User
@@ -24,17 +25,20 @@ class ReservationUseCaseTest {
     private lateinit var userService: UserService
     private lateinit var seatService: SeatService
     private lateinit var reservationService: ReservationService
+    private lateinit var queueTokenService: QueueTokenService
 
     @BeforeEach
     fun setUp() {
         userService = mockk()
         seatService = mockk()
         reservationService = mockk()
+        queueTokenService = mockk()
 
         reservationUseCase = ReservationUseCase(
             userService = userService,
             seatService = seatService,
             reservationService = reservationService,
+            queueTokenService = queueTokenService,
         )
     }
 
@@ -59,13 +63,15 @@ class ReservationUseCaseTest {
             price = 50000,
         )
         val reservation = Reservation.of(user, seat)
+        val queueToken = "test-queue-token"
 
         every { userService.getUser(userId) } returns user
         every { seatService.findByIdAndConcertScheduleId(seatId, scheduleId) } returns seat
+        every { queueTokenService.getQueueTokenByToken(queueToken) } returns mockk(relaxed = true)
         every { reservationService.save(any()) } returns reservation
 
         // when
-        val result = reservationUseCase.createReservation(userId, scheduleId, seatId)
+        val result = reservationUseCase.createReservation(userId, scheduleId, seatId, queueToken)
 
         // then
         assertThat(result).isNotNull
@@ -94,13 +100,15 @@ class ReservationUseCaseTest {
             seatStatus = SeatStatus.RESERVED, // 이미 예약됨
             price = 50000,
         )
+        val queueToken = "test-queue-token"
 
         every { userService.getUser(userId) } returns user
         every { seatService.findByIdAndConcertScheduleId(seatId, scheduleId) } returns seat
+        every { queueTokenService.getQueueTokenByToken(queueToken) } returns mockk(relaxed = true)
 
         // when & then
         assertThatThrownBy {
-            reservationUseCase.createReservation(userId, scheduleId, seatId)
+            reservationUseCase.createReservation(userId, scheduleId, seatId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
 
         verify(exactly = 1) { userService.getUser(userId) }
@@ -128,13 +136,15 @@ class ReservationUseCaseTest {
             seatStatus = SeatStatus.AVAILABLE,
             price = 50000,
         )
+        val queueToken = "test-queue-token"
 
         every { userService.getUser(userId) } returns user
         every { seatService.findByIdAndConcertScheduleId(seatId, scheduleId) } returns seat
+        every { queueTokenService.getQueueTokenByToken(queueToken) } returns mockk(relaxed = true)
 
         // when & then
         assertThatThrownBy {
-            reservationUseCase.createReservation(userId, scheduleId, seatId)
+            reservationUseCase.createReservation(userId, scheduleId, seatId, queueToken)
         }.isInstanceOf(BusinessException::class.java)
 
         verify(exactly = 1) { userService.getUser(userId) }
