@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus
  */
 enum class ErrorCode(
     val status: HttpStatus,
-    val message: String
+    val message: String,
 ) {
     // Common Errors (400 Bad Request)
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "잘못된 입력값입니다"),

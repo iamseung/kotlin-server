@@ -14,7 +14,6 @@ import kr.hhplus.be.server.point.entity.Point
 import kr.hhplus.be.server.point.service.PointHistoryService
 import kr.hhplus.be.server.point.service.PointService
 import kr.hhplus.be.server.reservation.entity.Reservation
-import kr.hhplus.be.server.reservation.entity.ReservationStatus
 import kr.hhplus.be.server.reservation.service.ReservationService
 import kr.hhplus.be.server.user.entity.User
 import kr.hhplus.be.server.user.service.UserService
@@ -62,13 +61,13 @@ class PaymentUseCaseTest {
         val concert = Concert(title = "Test Concert", description = "Test Description")
         val schedule = ConcertSchedule(
             concert = concert,
-            concertDate = LocalDate.now().plusDays(10)
+            concertDate = LocalDate.now().plusDays(10),
         )
         val seat = Seat(
             concertSchedule = schedule,
             seatNumber = 1,
             seatStatus = SeatStatus.TEMPORARY_RESERVED,
-            price = 50000
+            price = 50000,
         )
         val reservation = Reservation.of(user, seat)
         val point = Point(user = user, balance = 100000)
@@ -109,13 +108,13 @@ class PaymentUseCaseTest {
         val concert = Concert(title = "Test Concert", description = "Test Description")
         val schedule = ConcertSchedule(
             concert = concert,
-            concertDate = LocalDate.now().plusDays(10)
+            concertDate = LocalDate.now().plusDays(10),
         )
         val seat = Seat(
             concertSchedule = schedule,
             seatNumber = 1,
             seatStatus = SeatStatus.TEMPORARY_RESERVED,
-            price = 50000
+            price = 50000,
         )
         val reservation = spyk(Reservation.of(otherUser, seat))
         every { reservation.user } returns otherUser
@@ -148,13 +147,13 @@ class PaymentUseCaseTest {
         val concert = Concert(title = "Test Concert", description = "Test Description")
         val schedule = ConcertSchedule(
             concert = concert,
-            concertDate = LocalDate.now().plusDays(10)
+            concertDate = LocalDate.now().plusDays(10),
         )
         val seat = Seat(
             concertSchedule = schedule,
             seatNumber = 1,
             seatStatus = SeatStatus.RESERVED,
-            price = 50000
+            price = 50000,
         )
         val reservation = mockk<Reservation>(relaxed = true)
         every { reservation.user } returns user
@@ -190,13 +189,13 @@ class PaymentUseCaseTest {
         val concert = Concert(title = "Test Concert", description = "Test Description")
         val schedule = ConcertSchedule(
             concert = concert,
-            concertDate = LocalDate.now().plusDays(10)
+            concertDate = LocalDate.now().plusDays(10),
         )
         val seat = Seat(
             concertSchedule = schedule,
             seatNumber = 1,
             seatStatus = SeatStatus.TEMPORARY_RESERVED,
-            price = 50000
+            price = 50000,
         )
         val reservation = Reservation.of(user, seat)
 

@@ -9,5 +9,5 @@ package kr.hhplus.be.server.common.exception
  * - throw BusinessException(ErrorCode.INVALID_CHARGE_AMOUNT)
  */
 open class BusinessException(
-    val errorCode: ErrorCode
+    val errorCode: ErrorCode,
 ) : RuntimeException(errorCode.message)

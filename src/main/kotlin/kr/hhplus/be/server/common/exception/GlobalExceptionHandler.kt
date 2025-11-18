@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.common.exception
 
+import jakarta.servlet.http.HttpServletRequest
 import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -15,7 +16,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import jakarta.servlet.http.HttpServletRequest
 
 /**
  * 전역 예외 처리 핸들러
@@ -31,7 +31,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException::class)
     fun handleBusinessException(
         ex: BusinessException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.warn("Business exception occurred: ${ex.message}", ex)
 
@@ -40,7 +40,7 @@ class GlobalExceptionHandler {
             status = ex.errorCode.status.value(),
             error = ex.errorCode.status.reasonPhrase,
             message = ex.message ?: ex.errorCode.message,
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity
@@ -54,7 +54,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(NoHandlerFoundException::class)
     fun handleNoHandlerFoundException(
         ex: NoHandlerFoundException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.warn("No handler found: ${ex.message}")
 
@@ -63,7 +63,7 @@ class GlobalExceptionHandler {
             status = HttpStatus.NOT_FOUND.value(),
             error = HttpStatus.NOT_FOUND.reasonPhrase,
             message = "요청하신 리소스를 찾을 수 없습니다",
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity
@@ -77,7 +77,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
     fun handleHttpRequestMethodNotSupportedException(
         ex: HttpRequestMethodNotSupportedException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.warn("Method not supported: ${ex.method}")
 
@@ -86,7 +86,7 @@ class GlobalExceptionHandler {
             status = HttpStatus.METHOD_NOT_ALLOWED.value(),
             error = HttpStatus.METHOD_NOT_ALLOWED.reasonPhrase,
             message = "지원하지 않는 HTTP 메서드입니다: ${ex.method}",
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity
@@ -100,7 +100,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleMethodArgumentNotValidException(
         ex: MethodArgumentNotValidException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.warn("Validation failed: ${ex.bindingResult}")
 
@@ -112,7 +112,7 @@ class GlobalExceptionHandler {
             status = HttpStatus.BAD_REQUEST.value(),
             error = HttpStatus.BAD_REQUEST.reasonPhrase,
             message = errorMessage.ifEmpty { "입력값 검증에 실패했습니다" },
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity
@@ -126,7 +126,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(BindException::class)
     fun handleBindException(
         ex: BindException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.warn("Binding failed: ${ex.bindingResult}")
 
@@ -138,7 +138,7 @@ class GlobalExceptionHandler {
             status = HttpStatus.BAD_REQUEST.value(),
             error = HttpStatus.BAD_REQUEST.reasonPhrase,
             message = errorMessage.ifEmpty { "요청 파라미터 바인딩에 실패했습니다" },
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity
@@ -152,7 +152,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handleMethodArgumentTypeMismatchException(
         ex: MethodArgumentTypeMismatchException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.warn("Type mismatch: ${ex.name} should be ${ex.requiredType?.simpleName}")
 
@@ -161,7 +161,7 @@ class GlobalExceptionHandler {
             status = HttpStatus.BAD_REQUEST.value(),
             error = HttpStatus.BAD_REQUEST.reasonPhrase,
             message = "파라미터 타입이 올바르지 않습니다: ${ex.name}",
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity
@@ -175,7 +175,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException::class)
     fun handleMissingServletRequestParameterException(
         ex: MissingServletRequestParameterException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.warn("Missing parameter: ${ex.parameterName}")
 
@@ -184,7 +184,7 @@ class GlobalExceptionHandler {
             status = HttpStatus.BAD_REQUEST.value(),
             error = HttpStatus.BAD_REQUEST.reasonPhrase,
             message = "필수 파라미터가 누락되었습니다: ${ex.parameterName}",
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity
@@ -198,7 +198,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleHttpMessageNotReadableException(
         ex: HttpMessageNotReadableException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.warn("HTTP message not readable: ${ex.message}")
 
@@ -207,7 +207,7 @@ class GlobalExceptionHandler {
             status = HttpStatus.BAD_REQUEST.value(),
             error = HttpStatus.BAD_REQUEST.reasonPhrase,
             message = "요청 본문을 읽을 수 없습니다. JSON 형식을 확인해주세요",
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity
@@ -221,7 +221,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(
         ex: IllegalArgumentException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.warn("Illegal argument: ${ex.message}", ex)
 
@@ -230,7 +230,7 @@ class GlobalExceptionHandler {
             status = HttpStatus.BAD_REQUEST.value(),
             error = HttpStatus.BAD_REQUEST.reasonPhrase,
             message = ex.message ?: "잘못된 요청입니다",
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity
@@ -244,7 +244,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException::class)
     fun handleIllegalStateException(
         ex: IllegalStateException,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.warn("Illegal state: ${ex.message}", ex)
 
@@ -253,7 +253,7 @@ class GlobalExceptionHandler {
             status = HttpStatus.BAD_REQUEST.value(),
             error = HttpStatus.BAD_REQUEST.reasonPhrase,
             message = ex.message ?: "요청을 처리할 수 없는 상태입니다",
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity
@@ -267,7 +267,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(Exception::class)
     fun handleException(
         ex: Exception,
-        request: HttpServletRequest
+        request: HttpServletRequest,
     ): ResponseEntity<ErrorResponse> {
         logger.error("Unexpected exception occurred: ${ex.message}", ex)
 
@@ -276,7 +276,7 @@ class GlobalExceptionHandler {
             status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
             error = HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase,
             message = "서버 내부 오류가 발생했습니다",
-            path = request.requestURI
+            path = request.requestURI,
         )
 
         return ResponseEntity

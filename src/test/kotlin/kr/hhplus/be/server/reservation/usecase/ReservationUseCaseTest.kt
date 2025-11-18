@@ -50,13 +50,13 @@ class ReservationUseCaseTest {
         val concert = Concert(title = "Test Concert", description = "Test Description")
         val schedule = ConcertSchedule(
             concert = concert,
-            concertDate = LocalDate.now().plusDays(10)
+            concertDate = LocalDate.now().plusDays(10),
         )
         val seat = Seat(
             concertSchedule = schedule,
             seatNumber = 1,
             seatStatus = SeatStatus.AVAILABLE,
-            price = 50000
+            price = 50000,
         )
         val reservation = Reservation.of(user, seat)
 
@@ -86,13 +86,13 @@ class ReservationUseCaseTest {
         val concert = Concert(title = "Test Concert", description = "Test Description")
         val schedule = ConcertSchedule(
             concert = concert,
-            concertDate = LocalDate.now().plusDays(10)
+            concertDate = LocalDate.now().plusDays(10),
         )
         val seat = Seat(
             concertSchedule = schedule,
             seatNumber = 1,
-            seatStatus = SeatStatus.RESERVED,  // 이미 예약됨
-            price = 50000
+            seatStatus = SeatStatus.RESERVED, // 이미 예약됨
+            price = 50000,
         )
 
         every { userService.getUser(userId) } returns user
@@ -120,13 +120,13 @@ class ReservationUseCaseTest {
         val concert = Concert(title = "Test Concert", description = "Test Description")
         val schedule = ConcertSchedule(
             concert = concert,
-            concertDate = LocalDate.now().minusDays(1)  // 이미 지난 날짜
+            concertDate = LocalDate.now().minusDays(1), // 이미 지난 날짜
         )
         val seat = Seat(
             concertSchedule = schedule,
             seatNumber = 1,
             seatStatus = SeatStatus.AVAILABLE,
-            price = 50000
+            price = 50000,
         )
 
         every { userService.getUser(userId) } returns user
@@ -151,13 +151,13 @@ class ReservationUseCaseTest {
         val concert = Concert(title = "Test Concert", description = "Test Description")
         val schedule = ConcertSchedule(
             concert = concert,
-            concertDate = LocalDate.now().plusDays(10)
+            concertDate = LocalDate.now().plusDays(10),
         )
         val seat = Seat(
             concertSchedule = schedule,
             seatNumber = 1,
             seatStatus = SeatStatus.RESERVED,
-            price = 50000
+            price = 50000,
         )
         val reservation = Reservation.of(user, seat)
         val reservations = listOf(reservation)

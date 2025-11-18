@@ -8,5 +8,5 @@ package kr.hhplus.be.server.common.exception
  * - throw AuthorizationException(ErrorCode.QUEUE_TOKEN_NOT_ACTIVE)
  */
 class AuthorizationException(
-    errorCode: ErrorCode
+    errorCode: ErrorCode,
 ) : BusinessException(errorCode)

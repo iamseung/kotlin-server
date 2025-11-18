@@ -16,7 +16,7 @@ data class QueueStatusResponse(
     val queueStatus: QueueStatus,
 
     @Schema(description = "예상 대기 시간 (분)", example = "15")
-    val estimatedWaitTimeMinutes: Int
+    val estimatedWaitTimeMinutes: Int,
 ) {
     companion object {
         /**
@@ -34,7 +34,7 @@ data class QueueStatusResponse(
             return QueueStatusResponse(
                 queuePosition = queueToken.queuePosition,
                 queueStatus = queueToken.queueStatus,
-                estimatedWaitTimeMinutes = estimatedTime
+                estimatedWaitTimeMinutes = estimatedTime,
             )
         }
     }

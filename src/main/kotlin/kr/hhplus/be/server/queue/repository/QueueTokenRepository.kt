@@ -10,7 +10,6 @@ import java.util.*
 @Repository
 interface QueueTokenRepository : JpaRepository<QueueToken, Long> {
 
-
     fun findByToken(token: String): Optional<QueueToken>
 
     fun findByUserIdAndQueueStatus(userId: Long, queueStatus: QueueStatus): Optional<QueueToken>
@@ -19,11 +18,13 @@ interface QueueTokenRepository : JpaRepository<QueueToken, Long> {
 
     fun findAllByQueueStatusOrderByCreatedAtAsc(queueStatus: QueueStatus): List<QueueToken>
 
-    @Query("""
+    @Query(
+        """
         SELECT COUNT(q)
         FROM QueueToken q
         WHERE q.queueStatus = 'WAITING'
         AND q.queuePosition < :position
-    """)
+    """,
+    )
     fun countWaitingTokensBeforePosition(position: Int): Long
 }

@@ -9,5 +9,5 @@ data class CreateReservationRequest(
     @Schema(description = "콘서트 일정 ID", example = "1")
     val scheduleId: Long,
     @Schema(description = "좌석 ID", example = "15")
-    val seatId: Long
+    val seatId: Long,
 )

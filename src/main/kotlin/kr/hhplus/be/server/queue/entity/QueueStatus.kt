@@ -17,5 +17,5 @@ enum class QueueStatus {
     /**
      * 만료됨 - 토큰 기간 만료 또는 사용 완료
      */
-    EXPIRED
+    EXPIRED,
 }

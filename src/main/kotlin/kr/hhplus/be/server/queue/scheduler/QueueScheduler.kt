@@ -55,7 +55,6 @@ class QueueScheduler(
 
             // 대기 순서 재조정
             queueTokenService.updateWaitingPositions()
-
         } catch (e: Exception) {
             log.error("Error while activating waiting tokens", e)
         }
@@ -86,7 +85,6 @@ class QueueScheduler(
             if (expiredCount > 0) {
                 log.info("Expired $expiredCount tokens")
             }
-
         } catch (e: Exception) {
             log.error("Error while cleaning up expired tokens", e)
         }

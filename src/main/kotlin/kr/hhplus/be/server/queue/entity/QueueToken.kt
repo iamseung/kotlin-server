@@ -72,7 +72,7 @@ class QueueToken(
         fun of(user: User, position: Int): QueueToken {
             return QueueToken(
                 user = user,
-                queuePosition = position
+                queuePosition = position,
             )
         }
     }

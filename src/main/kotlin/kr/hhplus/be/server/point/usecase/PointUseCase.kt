@@ -1,14 +1,9 @@
 package kr.hhplus.be.server.point.usecase
 
-import kr.hhplus.be.server.common.exception.ErrorCode
-import kr.hhplus.be.server.common.exception.NotFoundException
-import kr.hhplus.be.server.common.util.findByIdOrThrow
 import kr.hhplus.be.server.payment.entity.TransactionType
 import kr.hhplus.be.server.point.dto.response.PointResponse
-import kr.hhplus.be.server.point.repository.PointRepository
 import kr.hhplus.be.server.point.service.PointHistoryService
 import kr.hhplus.be.server.point.service.PointService
-import kr.hhplus.be.server.user.repository.UserRepository
 import kr.hhplus.be.server.user.service.UserService
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional

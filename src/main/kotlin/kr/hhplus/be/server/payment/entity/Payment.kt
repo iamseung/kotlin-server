@@ -6,7 +6,6 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import kr.hhplus.be.server.common.BaseEntity
-import kr.hhplus.be.server.concert.entity.Seat
 import kr.hhplus.be.server.reservation.entity.Reservation
 import kr.hhplus.be.server.user.entity.User
 import java.time.LocalDateTime

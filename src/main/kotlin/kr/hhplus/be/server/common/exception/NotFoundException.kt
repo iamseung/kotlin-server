@@ -9,5 +9,5 @@ package kr.hhplus.be.server.common.exception
  * - throw NotFoundException(ErrorCode.SEAT_NOT_FOUND)
  */
 class NotFoundException(
-    errorCode: ErrorCode
+    errorCode: ErrorCode,
 ) : BusinessException(errorCode)

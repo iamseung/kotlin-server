@@ -46,7 +46,7 @@ class OpenAPIConfig {
                 io.swagger.v3.oas.models.info.Info()
                     .title("Kotlin Server API")
                     .description("API 명세는 docs/openapi.yml 파일에서 관리됩니다")
-                    .version("1.0.0")
+                    .version("1.0.0"),
             )
     }
 }

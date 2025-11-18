@@ -18,7 +18,7 @@ data class PointResponse(
             return PointResponse(
                 id = point.id,
                 userId = point.user.id,
-                balance = point.balance
+                balance = point.balance,
             )
         }
     }

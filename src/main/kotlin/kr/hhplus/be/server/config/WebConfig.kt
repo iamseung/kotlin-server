@@ -10,17 +10,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  */
 @Configuration
 class WebConfig(
-    private val queueTokenInterceptor: QueueTokenInterceptor
+    private val queueTokenInterceptor: QueueTokenInterceptor,
 ) : WebMvcConfigurer {
 
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(queueTokenInterceptor)
             .addPathPatterns(
-                "/api/v1/concerts/*/reservations",  // 좌석 예약
-                "/api/v1/payments"                   // 결제
+                "/api/v1/concerts/*/reservations", // 좌석 예약
+                "/api/v1/payments", // 결제
             )
             .excludePathPatterns(
-                "/api/v1/concerts/*/reservations",  // 예약 조회는 제외 (GET)
+                "/api/v1/concerts/*/reservations", // 예약 조회는 제외 (GET)
             )
     }
 }

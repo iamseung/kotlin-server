@@ -35,7 +35,7 @@ data class QueueTokenResponse(
     val createdAt: LocalDateTime?,
 
     @Schema(description = "수정 시간", example = "2025-01-01T00:00:00")
-    val updatedAt: LocalDateTime?
+    val updatedAt: LocalDateTime?,
 ) {
     companion object {
         fun from(queueToken: QueueToken): QueueTokenResponse {
@@ -48,7 +48,7 @@ data class QueueTokenResponse(
                 activatedAt = queueToken.activatedAt,
                 expiresAt = queueToken.expiresAt,
                 createdAt = queueToken.createdAt,
-                updatedAt = queueToken.updatedAt
+                updatedAt = queueToken.updatedAt,
             )
         }
     }

@@ -13,5 +13,5 @@ data class ErrorResponse(
     @Schema(description = "에러 메시지", example = "잘못된 요청입니다")
     val message: String,
     @Schema(description = "요청 경로", example = "/api/v1/concerts/1/schedules")
-    val path: String
+    val path: String,
 )

@@ -15,7 +15,7 @@ import org.springframework.web.servlet.HandlerInterceptor
  */
 @Component
 class QueueTokenInterceptor(
-    private val queueUseCase: QueueUseCase
+    private val queueUseCase: QueueUseCase,
 ) : HandlerInterceptor {
 
     companion object {
@@ -25,7 +25,7 @@ class QueueTokenInterceptor(
     override fun preHandle(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        handler: Any
+        handler: Any,
     ): Boolean {
         val token = request.getHeader(QUEUE_TOKEN_HEADER)
             ?: throw AuthenticationException(ErrorCode.INVALID_TOKEN)

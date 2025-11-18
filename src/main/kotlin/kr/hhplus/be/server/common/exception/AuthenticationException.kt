@@ -9,5 +9,5 @@ package kr.hhplus.be.server.common.exception
  * - throw AuthenticationException(ErrorCode.TOKEN_EXPIRED)
  */
 class AuthenticationException(
-    errorCode: ErrorCode
+    errorCode: ErrorCode,
 ) : BusinessException(errorCode)

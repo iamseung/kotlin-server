@@ -29,32 +29,36 @@ class PointController(
     @Operation(
         summary = "포인트 조회",
         description = "사용자 식별자를 통해 해당 사용자의 포인트를 조회합니다.",
-        operationId = "getPoints"
+        operationId = "getPoints",
     )
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "200",
                 description = "성공",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = PointResponse::class)
-                )]
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = PointResponse::class),
+                    ),
+                ],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "사용자를 찾을 수 없음",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ErrorResponse::class)
-                )]
-            )
-        ]
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponse::class),
+                    ),
+                ],
+            ),
+        ],
     )
     @GetMapping("/points")
     fun getPoints(
         @Parameter(description = "사용자 ID", required = true, `in` = ParameterIn.QUERY)
-        @RequestParam userId: Long
+        @RequestParam userId: Long,
     ): PointResponse {
         return pointService.getPoints(userId)
     }
@@ -62,39 +66,45 @@ class PointController(
     @Operation(
         summary = "포인트 충전",
         description = "사용자 식별자 및 충전할 금액을 받아 포인트를 충전합니다.",
-        operationId = "chargePoints"
+        operationId = "chargePoints",
     )
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "200",
                 description = "충전 성공",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = PointResponse::class)
-                )]
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = PointResponse::class),
+                    ),
+                ],
             ),
             ApiResponse(
                 responseCode = "400",
                 description = "잘못된 요청 (충전 금액이 0 이하 등)",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ErrorResponse::class)
-                )]
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponse::class),
+                    ),
+                ],
             ),
             ApiResponse(
                 responseCode = "404",
                 description = "사용자를 찾을 수 없음",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ErrorResponse::class)
-                )]
-            )
-        ]
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponse::class),
+                    ),
+                ],
+            ),
+        ],
     )
     @PostMapping("/points/charge")
     fun chargePoint(
-        @RequestBody request: ChargePointRequest
+        @RequestBody request: ChargePointRequest,
     ) {
         pointService.chargePoint(request.userId, request.amount)
     }
