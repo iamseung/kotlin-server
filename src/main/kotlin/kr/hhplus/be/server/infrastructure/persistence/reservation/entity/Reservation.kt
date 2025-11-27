@@ -1,28 +1,23 @@
 package kr.hhplus.be.server.infrastructure.persistence.reservation.entity
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.reservation.model.ReservationModel
 import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
 import kr.hhplus.be.server.infrastructure.comon.BaseEntity
-import kr.hhplus.be.server.infrastructure.persistence.concert.entity.Seat
-import kr.hhplus.be.server.infrastructure.persistence.user.entity.User
 import java.time.LocalDateTime
 
 @Entity
 @Table(name = "reservation")
 class Reservation(
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    val user: User,
+    @Column(name = "user_id", nullable = false)
+    val userId: Long,
 
-    @ManyToOne
-    @JoinColumn(name = "seat_id", nullable = false)
-    val seat: Seat,
+    @Column(name = "seat_id", nullable = false)
+    val seatId: Long,
 
     @Enumerated(EnumType.STRING)
     var reservationStatus: ReservationStatus = ReservationStatus.TEMPORARY,
@@ -34,8 +29,8 @@ class Reservation(
     fun toModel(): ReservationModel {
         return ReservationModel.reconstitute(
             id = id,
-            userId = user.id,
-            seatId = seat.id,
+            userId = userId,
+            seatId = seatId,
             reservationStatus = reservationStatus,
             temporaryReservedAt = temporaryReservedAt,
             temporaryExpiredAt = temporaryExpiredAt,
@@ -51,14 +46,10 @@ class Reservation(
     }
 
     companion object {
-        fun fromDomain(
-            reservationModel: ReservationModel,
-            user: User,
-            seat: Seat,
-        ): Reservation {
+        fun fromDomain(reservationModel: ReservationModel): Reservation {
             return Reservation(
-                user = user,
-                seat = seat,
+                userId = reservationModel.userId,
+                seatId = reservationModel.seatId,
             )
         }
     }

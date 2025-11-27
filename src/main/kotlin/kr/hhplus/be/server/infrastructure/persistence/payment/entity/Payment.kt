@@ -1,28 +1,23 @@
 package kr.hhplus.be.server.infrastructure.persistence.payment.entity
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.payment.model.PaymentModel
 import kr.hhplus.be.server.domain.payment.model.PaymentStatus
 import kr.hhplus.be.server.infrastructure.comon.BaseEntity
-import kr.hhplus.be.server.infrastructure.persistence.reservation.entity.Reservation
-import kr.hhplus.be.server.infrastructure.persistence.user.entity.User
 import java.time.LocalDateTime
 
 @Entity
 @Table(name = "payment")
 class Payment(
-    @ManyToOne
-    @JoinColumn(name = "reservation_id", nullable = false)
-    val reservation: Reservation,
+    @Column(name = "reservation_id", nullable = false)
+    val reservationId: Long,
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    val user: User,
+    @Column(name = "user_id", nullable = false)
+    val userId: Long,
 
     val amount: Int,
 ) : BaseEntity() {
@@ -34,8 +29,8 @@ class Payment(
     fun toModel(): PaymentModel {
         return PaymentModel.reconstitute(
             id = id,
-            reservationId = reservation.id,
-            userId = user.id,
+            reservationId = reservationId,
+            userId = userId,
             amount = amount,
             paymentStatus = paymentStatus,
             paymentAt = paymentAt,
@@ -50,14 +45,10 @@ class Payment(
     }
 
     companion object {
-        fun fromDomain(
-            paymentModel: PaymentModel,
-            reservation: Reservation,
-            user: User,
-        ): Payment {
+        fun fromDomain(paymentModel: PaymentModel): Payment {
             return Payment(
-                reservation = reservation,
-                user = user,
+                reservationId = paymentModel.reservationId,
+                userId = paymentModel.userId,
                 amount = paymentModel.amount,
             )
         }

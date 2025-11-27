@@ -4,22 +4,18 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.infrastructure.comon.BaseEntity
-import kr.hhplus.be.server.infrastructure.persistence.user.entity.User
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
 @Table(name = "queue_token")
 class QueueToken(
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    val user: User,
+    @Column(name = "user_id", nullable = false)
+    val userId: Long,
 
     @Column(nullable = false, unique = true)
     val token: String = UUID.randomUUID().toString(),
@@ -41,7 +37,7 @@ class QueueToken(
     fun toModel(): QueueTokenModel {
         return QueueTokenModel.reconstitute(
             id = id,
-            userId = user.id,
+            userId = userId,
             token = token,
             queueStatus = queueStatus,
             queuePosition = queuePosition,
@@ -52,7 +48,7 @@ class QueueToken(
         )
     }
 
-    fun updateFromDomain(queueTokenModel: kr.hhplus.be.server.domain.queue.model.QueueTokenModel) {
+    fun updateFromDomain(queueTokenModel: QueueTokenModel) {
         this.queueStatus = queueTokenModel.queueStatus
         this.queuePosition = queueTokenModel.queuePosition
         this.activatedAt = queueTokenModel.activatedAt
@@ -60,19 +56,9 @@ class QueueToken(
     }
 
     companion object {
-        fun of(user: User, position: Int): QueueToken {
+        fun fromDomain(queueTokenModel: QueueTokenModel): QueueToken {
             return QueueToken(
-                user = user,
-                queuePosition = position,
-            )
-        }
-
-        fun fromDomain(
-            queueTokenModel: kr.hhplus.be.server.domain.queue.model.QueueTokenModel,
-            user: User,
-        ): QueueToken {
-            return QueueToken(
-                user = user,
+                userId = queueTokenModel.userId,
                 token = queueTokenModel.token,
                 queueStatus = queueTokenModel.queueStatus,
                 queuePosition = queueTokenModel.queuePosition,

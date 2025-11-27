@@ -1,9 +1,7 @@
 package kr.hhplus.be.server.infrastructure.persistence.concert.entity
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.concert.model.ConcertScheduleModel
 import kr.hhplus.be.server.infrastructure.comon.BaseEntity
@@ -12,20 +10,16 @@ import java.time.LocalDate
 @Entity
 @Table(name = "concert_schedule")
 class ConcertSchedule(
-    @ManyToOne
-    @JoinColumn(name = "concert_id", nullable = false)
-    val concert: Concert,
+    @Column(name = "concert_id", nullable = false)
+    val concertId: Long,
 
     var concertDate: LocalDate,
-
-    @OneToMany(mappedBy = "concertSchedule")
-    val seats: MutableList<Seat> = mutableListOf(),
 ) : BaseEntity() {
 
     fun toModel(): ConcertScheduleModel {
         return ConcertScheduleModel.reconstitute(
             id = id,
-            concertId = concert.id,
+            concertId = concertId,
             concertDate = concertDate,
             createdAt = createdAt,
             updatedAt = updatedAt,
@@ -37,12 +31,9 @@ class ConcertSchedule(
     }
 
     companion object {
-        fun fromDomain(
-            concertScheduleModel: ConcertScheduleModel,
-            concert: Concert,
-        ): ConcertSchedule {
+        fun fromDomain(concertScheduleModel: ConcertScheduleModel): ConcertSchedule {
             return ConcertSchedule(
-                concert = concert,
+                concertId = concertScheduleModel.concertId,
                 concertDate = concertScheduleModel.concertDate,
             )
         }

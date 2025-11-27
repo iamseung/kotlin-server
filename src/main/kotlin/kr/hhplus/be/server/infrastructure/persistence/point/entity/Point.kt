@@ -1,19 +1,16 @@
 package kr.hhplus.be.server.infrastructure.persistence.point.entity
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.point.model.PointModel
 import kr.hhplus.be.server.infrastructure.comon.BaseEntity
-import kr.hhplus.be.server.infrastructure.persistence.user.entity.User
 
 @Entity
 @Table(name = "point")
 class Point(
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    val user: User,
+    @Column(name = "user_id", nullable = false, unique = true)
+    val userId: Long,
 
     // 포인트 잔액
     var balance: Int,
@@ -22,7 +19,7 @@ class Point(
     fun toModel(): PointModel {
         return PointModel.reconstitute(
             id = id,
-            userId = user.id,
+            userId = userId,
             balance = balance,
             createdAt = createdAt,
             updatedAt = updatedAt,
@@ -34,12 +31,9 @@ class Point(
     }
 
     companion object {
-        fun fromDomain(
-            pointModel: PointModel,
-            user: User,
-        ): Point {
+        fun fromDomain(pointModel: PointModel): Point {
             return Point(
-                user = user,
+                userId = pointModel.userId,
                 balance = pointModel.balance,
             )
         }
