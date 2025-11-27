@@ -12,7 +12,10 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.api.dto.request.IssueQueueTokenRequest
 import kr.hhplus.be.server.api.dto.response.QueueStatusResponse
 import kr.hhplus.be.server.api.dto.response.QueueTokenResponse
-import kr.hhplus.be.server.application.QueueFacade
+import kr.hhplus.be.server.application.usecase.queue.GetQueueStatusCommand
+import kr.hhplus.be.server.application.usecase.queue.GetQueueStatusUseCase
+import kr.hhplus.be.server.application.usecase.queue.IssueQueueTokenCommand
+import kr.hhplus.be.server.application.usecase.queue.IssueQueueTokenUseCase
 import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,7 +30,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/queue")
 @Tag(name = "Queue", description = "대기열 토큰 관리")
 class QueueController(
-    private val queueFacade: QueueFacade,
+    private val issueQueueTokenUseCase: IssueQueueTokenUseCase,
+    private val getQueueStatusUseCase: GetQueueStatusUseCase,
 ) {
 
     @Operation(
@@ -70,7 +74,14 @@ class QueueController(
     fun issueQueueToken(
         @RequestBody request: IssueQueueTokenRequest,
     ): QueueTokenResponse {
-        return queueFacade.issueQueueToken(request.userId)
+        val command = IssueQueueTokenCommand(userId = request.userId)
+        val result = issueQueueTokenUseCase.execute(command)
+        return QueueTokenResponse(
+            token = result.token,
+            status = result.status.name,
+            position = result.position,
+            estimatedWaitTimeMinutes = 0
+        )
     }
 
     @Operation(
@@ -123,6 +134,12 @@ class QueueController(
         @Parameter(description = "대기열 토큰 (UUID 형식)", required = true, `in` = ParameterIn.HEADER)
         @RequestHeader("X-Queue-Token") queueToken: String,
     ): QueueStatusResponse {
-        return queueFacade.getQueueStatus(queueToken)
+        val command = GetQueueStatusCommand(token = queueToken)
+        val result = getQueueStatusUseCase.execute(command)
+        return QueueStatusResponse(
+            token = result.token,
+            status = result.status.name,
+            position = result.position
+        )
     }
 }

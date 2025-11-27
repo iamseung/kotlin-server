@@ -2,7 +2,8 @@ package kr.hhplus.be.server.api.config.interceptor
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import kr.hhplus.be.server.application.QueueFacade
+import kr.hhplus.be.server.application.usecase.queue.ValidateQueueTokenCommand
+import kr.hhplus.be.server.application.usecase.queue.ValidateQueueTokenUseCase
 import kr.hhplus.be.server.common.exception.AuthenticationException
 import kr.hhplus.be.server.common.exception.ErrorCode
 import org.springframework.stereotype.Component
@@ -15,7 +16,7 @@ import org.springframework.web.servlet.HandlerInterceptor
  */
 @Component
 class QueueTokenInterceptor(
-    private val queueFacade: QueueFacade,
+    private val validateQueueTokenUseCase: ValidateQueueTokenUseCase,
 ) : HandlerInterceptor {
 
     companion object {
@@ -31,7 +32,8 @@ class QueueTokenInterceptor(
             ?: throw AuthenticationException(ErrorCode.INVALID_TOKEN)
 
         // 토큰 검증 (ACTIVE 상태가 아니면 예외 발생)
-        queueFacade.validateQueueToken(token)
+        val command = ValidateQueueTokenCommand(token = token)
+        validateQueueTokenUseCase.execute(command)
 
         return true
     }
