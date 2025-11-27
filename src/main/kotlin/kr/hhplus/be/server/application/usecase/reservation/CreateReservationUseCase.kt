@@ -1,6 +1,5 @@
-package kr.hhplus.be.server.application
+package kr.hhplus.be.server.application.usecase.reservation
 
-import kr.hhplus.be.server.api.dto.response.ReservationResponse
 import kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
 import kr.hhplus.be.server.domain.concert.service.SeatService
 import kr.hhplus.be.server.domain.queue.service.QueueTokenService
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
-class ReservationFacade(
+class CreateReservationUseCase(
     private val userService: UserService,
     private val seatService: SeatService,
     private val reservationService: ReservationService,
@@ -19,32 +18,33 @@ class ReservationFacade(
     private val concertScheduleService: ConcertScheduleService,
 ) {
 
-    @Transactional(readOnly = true)
-    fun getConcertReservations(userId: Long): List<ReservationResponse> {
-        val user = userService.findById(userId)
-        val reservations = reservationService.findAllByUserId(user.id)
-
-        return reservations.map { ReservationResponse.from(it) }
-    }
-
     @Transactional
-    fun createReservation(
-        userId: Long,
-        scheduleId: Long,
-        seatId: Long,
-        queueToken: String,
-    ): ReservationResponse {
-        val token = queueTokenService.getQueueTokenByToken(queueToken)
+    fun execute(command: CreateReservationCommand): CreateReservationResult {
+        // 1. 대기열 토큰 검증
+        val token = queueTokenService.getQueueTokenByToken(command.queueToken)
         token.validateActive()
 
-        val user = userService.findById(userId)
-        val schedule = concertScheduleService.findById(scheduleId)
+        // 2. 사용자 검증
+        val user = userService.findById(command.userId)
+
+        // 3. 콘서트 일정 검증
+        val schedule = concertScheduleService.findById(command.scheduleId)
         schedule.validateAvailable()
 
-        val seat = seatService.findByIdAndConcertScheduleIdWithLock(seatId, schedule.id)
+        // 4. 좌석 조회 및 임시 예약
+        val seat = seatService.findByIdAndConcertScheduleIdWithLock(command.seatId, schedule.id)
         seat.temporaryReservation()
 
+        // 5. 예약 생성
         val reservation = reservationService.save(ReservationModel.create(user.id, seat.id))
-        return ReservationResponse.from(reservation)
+
+        // 6. 결과 반환
+        return CreateReservationResult(
+            reservationId = reservation.id,
+            userId = reservation.userId,
+            seatId = reservation.seatId,
+            status = reservation.status,
+            reservedAt = reservation.reservedAt
+        )
     }
 }

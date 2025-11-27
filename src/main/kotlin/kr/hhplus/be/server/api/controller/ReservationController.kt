@@ -11,7 +11,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.api.dto.request.CreateReservationRequest
 import kr.hhplus.be.server.api.dto.response.ReservationResponse
-import kr.hhplus.be.server.application.ReservationFacade
+import kr.hhplus.be.server.application.usecase.reservation.CreateReservationCommand
+import kr.hhplus.be.server.application.usecase.reservation.CreateReservationUseCase
+import kr.hhplus.be.server.application.usecase.reservation.GetConcertReservationsCommand
+import kr.hhplus.be.server.application.usecase.reservation.GetConcertReservationsUseCase
 import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -25,7 +28,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/concerts")
 @Tag(name = "Reservations", description = "좌석 예약 관리")
 class ReservationController(
-    private val reservationService: ReservationFacade,
+    private val getConcertReservationsUseCase: GetConcertReservationsUseCase,
+    private val createReservationUseCase: CreateReservationUseCase,
 ) {
 
     @GetMapping("/{concertId}/reservations")
@@ -33,7 +37,9 @@ class ReservationController(
         @PathVariable concertId: Long,
         @RequestHeader("User-Id") userId: Long,
     ): List<ReservationResponse> {
-        return reservationService.getConcertReservations(userId)
+        val command = GetConcertReservationsCommand(userId = userId)
+        val result = getConcertReservationsUseCase.execute(command)
+        return result.reservations.map { ReservationResponse.from(it) }
     }
 
     @Operation(
@@ -109,6 +115,19 @@ class ReservationController(
         @RequestHeader("X-Queue-Token") queueToken: String,
         @RequestBody request: CreateReservationRequest,
     ): ReservationResponse {
-        return reservationService.createReservation(request.userId, request.scheduleId, request.seatId, queueToken)
+        val command = CreateReservationCommand(
+            userId = request.userId,
+            scheduleId = request.scheduleId,
+            seatId = request.seatId,
+            queueToken = queueToken
+        )
+        val result = createReservationUseCase.execute(command)
+        return ReservationResponse(
+            id = result.reservationId,
+            seatId = result.seatId,
+            reservationStatus = result.status.name,
+            temporaryReservedAt = result.reservedAt.toString(),
+            temporaryExpiresAt = result.reservedAt.plusMinutes(5).toString()
+        )
     }
 }
