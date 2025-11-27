@@ -10,7 +10,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.api.dto.response.ConcertScheduleResponse
 import kr.hhplus.be.server.api.dto.response.SeatResponse
-import kr.hhplus.be.server.application.ConcertScheduleFacade
+import kr.hhplus.be.server.application.usecase.concert.GetAvailableSchedulesCommand
+import kr.hhplus.be.server.application.usecase.concert.GetAvailableSchedulesUseCase
+import kr.hhplus.be.server.application.usecase.concert.GetAvailableSeatsCommand
+import kr.hhplus.be.server.application.usecase.concert.GetAvailableSeatsUseCase
 import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -21,7 +24,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/concerts")
 @Tag(name = "Concerts API", description = "콘서트 조회")
 class ConcertController(
-    private val concertScheduleService: ConcertScheduleFacade,
+    private val getAvailableSchedulesUseCase: GetAvailableSchedulesUseCase,
+    private val getAvailableSeatsUseCase: GetAvailableSeatsUseCase,
 ) {
 
     @Operation(
@@ -58,7 +62,16 @@ class ConcertController(
         @Parameter(description = "콘서트 ID", required = true)
         @PathVariable concertId: Long,
     ): List<ConcertScheduleResponse> {
-        return concertScheduleService.getAvailableSchedules(concertId)
+        val command = GetAvailableSchedulesCommand(concertId = concertId)
+        val result = getAvailableSchedulesUseCase.execute(command)
+        return result.schedules.map { schedule ->
+            ConcertScheduleResponse(
+                scheduleId = schedule.scheduleId,
+                concertDate = schedule.concertDate.toString(),
+                totalSeats = schedule.totalSeats,
+                availableSeats = schedule.availableSeats
+            )
+        }
     }
 
     @Operation(
@@ -98,6 +111,15 @@ class ConcertController(
         @Parameter(description = "콘서트 일정 ID", required = true)
         @PathVariable scheduleId: Long,
     ): List<SeatResponse> {
-        return concertScheduleService.getAvailableSeats(concertId, scheduleId)
+        val command = GetAvailableSeatsCommand(concertId = concertId, scheduleId = scheduleId)
+        val result = getAvailableSeatsUseCase.execute(command)
+        return result.seats.map { seat ->
+            SeatResponse(
+                seatId = seat.seatId,
+                seatNumber = seat.seatNumber,
+                price = seat.price,
+                status = seat.status.name
+            )
+        }
     }
 }
