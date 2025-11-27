@@ -1,6 +1,5 @@
-package kr.hhplus.be.server.application
+package kr.hhplus.be.server.application.usecase.payment
 
-import kr.hhplus.be.server.api.dto.response.PaymentResponse
 import kr.hhplus.be.server.domain.concert.service.SeatService
 import kr.hhplus.be.server.domain.payment.model.PaymentModel
 import kr.hhplus.be.server.domain.payment.service.PaymentService
@@ -14,8 +13,7 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
-@Transactional
-class PaymentFacade(
+class ProcessPaymentUseCase(
     private val userService: UserService,
     private val reservationService: ReservationService,
     private val seatService: SeatService,
@@ -25,28 +23,44 @@ class PaymentFacade(
     private val queueTokenService: QueueTokenService,
 ) {
 
-    fun processPayment(userId: Long, reservationId: Long, queueToken: String): PaymentResponse {
-        val user = userService.findById(userId)
+    @Transactional
+    fun execute(command: ProcessPaymentCommand): ProcessPaymentResult {
+        // 1. 사용자 검증
+        val user = userService.findById(command.userId)
 
-        val reservation = reservationService.findById(reservationId)
+        // 2. 예약 검증
+        val reservation = reservationService.findById(command.reservationId)
         reservation.validateOwnership(user.id)
         reservation.validatePayable()
 
+        // 3. 좌석 조회
         val seat = seatService.findById(reservation.seatId)
 
+        // 4. 포인트 차감 및 히스토리 기록
         pointService.usePoint(user.id, seat.price)
         pointHistoryService.savePointHistory(user.id, seat.price, TransactionType.USE)
 
-        val paymentModel = paymentService.savePayment(PaymentModel.create(reservationId, user.id, seat.price))
+        // 5. 결제 저장
+        val paymentModel = paymentService.savePayment(PaymentModel.create(command.reservationId, user.id, seat.price))
 
+        // 6. 좌석 예약 확정
         seat.confirmReservation()
 
+        // 7. 예약 결제 완료 처리
         reservation.confirmPayment()
         reservationService.save(reservation)
 
-        val token = queueTokenService.getQueueTokenByToken(queueToken)
+        // 8. 대기열 토큰 만료
+        val token = queueTokenService.getQueueTokenByToken(command.queueToken)
         queueTokenService.expireQueueToken(token)
 
-        return PaymentResponse.from(paymentModel)
+        // 9. 결과 반환
+        return ProcessPaymentResult(
+            paymentId = paymentModel.id,
+            reservationId = paymentModel.reservationId,
+            userId = paymentModel.userId,
+            amount = paymentModel.amount,
+            paymentDate = paymentModel.paymentDate
+        )
     }
 }

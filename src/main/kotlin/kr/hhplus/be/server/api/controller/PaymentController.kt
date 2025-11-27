@@ -10,7 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.api.dto.request.ProcessPaymentRequest
 import kr.hhplus.be.server.api.dto.response.PaymentResponse
-import kr.hhplus.be.server.application.PaymentFacade
+import kr.hhplus.be.server.application.usecase.payment.ProcessPaymentCommand
+import kr.hhplus.be.server.application.usecase.payment.ProcessPaymentUseCase
 import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/payments")
 @Tag(name = "Payments", description = "결제 처리")
 class PaymentController(
-    private val paymentFacade: PaymentFacade,
+    private val processPaymentUseCase: ProcessPaymentUseCase,
 ) {
 
     @Operation(
@@ -72,6 +73,18 @@ class PaymentController(
         @RequestHeader("X-Queue-Token") queueToken: String,
         @RequestBody request: ProcessPaymentRequest,
     ): PaymentResponse {
-        return paymentFacade.processPayment(userId, request.reservationId, queueToken)
+        val command = ProcessPaymentCommand(
+            userId = userId,
+            reservationId = request.reservationId,
+            queueToken = queueToken
+        )
+        val result = processPaymentUseCase.execute(command)
+        return PaymentResponse(
+            paymentId = result.paymentId,
+            reservationId = result.reservationId,
+            userId = result.userId,
+            amount = result.amount,
+            paymentDate = result.paymentDate
+        )
     }
 }
