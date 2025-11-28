@@ -33,30 +33,6 @@ class ConcertController(
         description = "특정 콘서트의 예약 가능한 날짜 목록을 조회합니다.",
         operationId = "getAvailableSchedules",
     )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "성공",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        array = ArraySchema(schema = Schema(implementation = ConcertScheduleResponse::class)),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "콘서트를 찾을 수 없음",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-        ],
-    )
     @GetMapping("/{concertId}/schedules")
     fun getConcertSchedules(
         @Parameter(description = "콘서트 ID", required = true)
@@ -78,30 +54,6 @@ class ConcertController(
         description = """특정 날짜의 예약 가능한 좌석 정보를 조회합니다.
 좌석 번호는 1-50번까지 관리됩니다.""",
         operationId = "getAvailableSeats",
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "성공",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        array = ArraySchema(schema = Schema(implementation = SeatResponse::class)),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "콘서트 또는 일정을 찾을 수 없음",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-        ],
     )
     @GetMapping("/{concertId}/schedules/{scheduleId}/seats")
     fun getConcertScheduleSeats(

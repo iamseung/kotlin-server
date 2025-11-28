@@ -32,6 +32,10 @@ class ReservationController(
     private val createReservationUseCase: CreateReservationUseCase,
 ) {
 
+    @Operation(
+        summary = "좌석 예약 조회",
+        description = "예약한 좌석을 조회합니다."
+    )
     @GetMapping("/{concertId}/reservations")
     fun getConcertReservations(
         @PathVariable concertId: Long,
@@ -52,60 +56,6 @@ class ReservationController(
 - 대기열 토큰이 ACTIVE 상태여야 예약 가능합니다.""",
         operationId = "createReservation",
         security = [SecurityRequirement(name = "QueueToken")],
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "201",
-                description = "예약 성공 (임시 배정)",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ReservationResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "잘못된 요청 (이미 예약된 좌석, 포인트 부족 등)",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "401",
-                description = "인증 실패 (유효하지 않은 토큰)",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "403",
-                description = "권한 없음 (대기열 토큰이 ACTIVE 상태가 아님)",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "콘서트를 찾을 수 없음",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-        ],
     )
     @PostMapping("/{concertId}/reservations")
     fun createReservation(

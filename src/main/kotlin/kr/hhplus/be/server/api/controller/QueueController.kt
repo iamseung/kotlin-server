@@ -45,30 +45,6 @@ class QueueController(
 **중요**: 이후 모든 API는 이 토큰을 통해 대기열 검증을 통과해야 이용 가능합니다.""",
         operationId = "issueQueueToken",
     )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "201",
-                description = "토큰 발급 성공",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = QueueTokenResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "잘못된 요청",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-        ],
-    )
     @PostMapping("/token")
     @ResponseStatus(HttpStatus.CREATED)
     fun issueQueueToken(
@@ -99,40 +75,6 @@ class QueueController(
 - 예상 대기 시간 (선택)""",
         operationId = "getQueueStatus",
         security = [SecurityRequirement(name = "QueueToken")],
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "성공",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = QueueStatusResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "401",
-                description = "인증 실패 (유효하지 않은 토큰)",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "대기열 정보를 찾을 수 없음",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-        ],
     )
     @GetMapping("/status")
     fun getQueueStatus(

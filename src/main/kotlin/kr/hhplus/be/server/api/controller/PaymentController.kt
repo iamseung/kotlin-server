@@ -31,40 +31,6 @@ class PaymentController(
         description = "임시 예약된 좌석에 대해 결제를 처리합니다. 포인트를 차감하고 예약을 확정합니다.",
         operationId = "processPayment",
     )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "결제 성공",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = PaymentResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "잘못된 요청 (예약 상태가 TEMPORARY가 아님, 포인트 부족 등)",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "예약 또는 사용자를 찾을 수 없음",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-        ],
-    )
     @PostMapping
     fun processPayment(
         @Parameter(description = "사용자 ID", required = true, `in` = ParameterIn.HEADER)
