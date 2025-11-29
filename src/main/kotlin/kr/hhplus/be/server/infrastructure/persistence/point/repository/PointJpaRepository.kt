@@ -10,6 +10,6 @@ interface PointJpaRepository : JpaRepository<Point, Long> {
     fun findByUserId(userId: Long): Point?
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM Point p WHERE p.user.id = :userId")
+    @Query("SELECT p FROM Point p WHERE p.userId = :userId")
     fun findByUserIdWithLock(userId: Long): Point?
 }

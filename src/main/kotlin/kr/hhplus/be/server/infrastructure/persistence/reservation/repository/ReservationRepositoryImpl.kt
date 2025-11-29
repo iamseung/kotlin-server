@@ -19,6 +19,13 @@ class ReservationRepositoryImpl(
         return saved.toModel()
     }
 
+    override fun update(reservationModel: ReservationModel): ReservationModel {
+        val entity = reservationJpaRepository.findByIdOrNull(reservationModel.id)
+            ?: throw BusinessException(ErrorCode.RESERVATION_NOT_FOUND)
+        entity.updateFromDomain(reservationModel)
+        return reservationJpaRepository.save(entity).toModel()
+    }
+
     override fun findById(id: Long): ReservationModel? {
         return reservationJpaRepository.findByIdOrNull(id)?.toModel()
     }

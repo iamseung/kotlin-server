@@ -4,6 +4,7 @@ import kr.hhplus.be.server.domain.concert.model.SeatModel
 import kr.hhplus.be.server.domain.concert.model.SeatStatus
 
 interface SeatRepository {
+    fun update(seatModel: SeatModel): SeatModel
     fun findById(id: Long): SeatModel?
     fun findByIdOrThrow(id: Long): SeatModel
     fun findByIdWithLock(id: Long): SeatModel

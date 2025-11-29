@@ -45,10 +45,11 @@ class ProcessPaymentUseCase(
 
         // 6. 좌석 예약 확정
         seat.confirmReservation()
+        seatService.update(seat)
 
         // 7. 예약 결제 완료 처리
         reservation.confirmPayment()
-        reservationService.save(reservation)
+        reservationService.update(reservation)
 
         // 8. 대기열 토큰 만료
         val token = queueTokenService.getQueueTokenByToken(command.queueToken)

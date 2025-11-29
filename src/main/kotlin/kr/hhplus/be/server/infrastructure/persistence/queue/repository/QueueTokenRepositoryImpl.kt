@@ -21,6 +21,16 @@ class QueueTokenRepositoryImpl(
         return saved.toModel()
     }
 
+    override fun update(queueTokenModel: QueueTokenModel): QueueTokenModel {
+        val entity = find(queueTokenModel.id)
+        entity.updateFromDomain(queueTokenModel)
+        return queueTokenJpaRepository.save(entity).toModel()
+    }
+
+    private fun find(id: Long): QueueToken {
+        return queueTokenJpaRepository.findByIdOrNull(id) ?: throw BusinessException(ErrorCode.QUEUE_TOKEN_NOT_FOUND)
+    }
+
     override fun findById(id: Long): QueueTokenModel? {
         return queueTokenJpaRepository.findByIdOrNull(id)?.toModel()
     }

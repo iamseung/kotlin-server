@@ -40,7 +40,7 @@ class QueueTokenService(
 
     fun expireQueueToken(queueTokenModel: QueueTokenModel): QueueTokenModel {
         queueTokenModel.expire()
-        return queueTokenRepository.save(queueTokenModel)
+        return queueTokenRepository.update(queueTokenModel)
     }
 
     fun updateWaitingPositions() {
@@ -48,7 +48,7 @@ class QueueTokenService(
 
         waitingTokens.forEachIndexed { index, token ->
             token.updatePosition(index + 1)
-            queueTokenRepository.save(token)
+            queueTokenRepository.update(token)
         }
     }
 
@@ -57,7 +57,7 @@ class QueueTokenService(
 
         waitingTokens.take(count).forEach { token ->
             token.activate()
-            queueTokenRepository.save(token)
+            queueTokenRepository.update(token)
         }
     }
 }

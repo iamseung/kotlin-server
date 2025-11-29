@@ -22,4 +22,8 @@ class SeatService(
     fun findAllByConcertScheduleId(scheduleId: Long): List<SeatModel> {
         return seatRepository.findAllByConcertScheduleId(scheduleId)
     }
+
+    fun update(seatModel: SeatModel): SeatModel {
+        return seatRepository.update(seatModel)
+    }
 }

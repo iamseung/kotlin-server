@@ -34,6 +34,7 @@ class CreateReservationUseCase(
         // 4. 좌석 조회 및 임시 예약
         val seat = seatService.findByIdAndConcertScheduleIdWithLock(command.seatId, schedule.id)
         seat.temporaryReservation()
+        seatService.update(seat)
 
         // 5. 예약 생성
         val reservation = reservationService.save(ReservationModel.create(user.id, seat.id))
