@@ -12,6 +12,12 @@ services:
     volumes:
       - ./data/mysql/:/var/lib/mysql
 
+  redis:
+    image: redis:7.2-alpine
+    command: redis-server --port 6380
+    ports:
+      - "6380:6380"
+
 networks:
   default:
     driver: bridge
