@@ -23,11 +23,15 @@ class QueueTokenService(
             return existingWaitingToken
         }
 
-        val waitingCount = queueTokenRepository.countByStatus(QueueStatus.WAITING)
-        val position = (waitingCount + 1).toInt()
+        val position = getPosition()
 
         val queueTokenModel = QueueTokenModel.create(userId, position)
         return queueTokenRepository.save(queueTokenModel)
+    }
+
+    private fun getPosition(): Int {
+        val waitingCount = queueTokenRepository.countByStatus(QueueStatus.WAITING)
+        return (waitingCount + 1).toInt()
     }
 
     fun getQueueTokenByToken(token: String): QueueTokenModel {
