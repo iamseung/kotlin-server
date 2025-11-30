@@ -20,7 +20,7 @@ class GetQueueStatusUseCaseTest {
         queueTokenService = mockk()
 
         getQueueStatusUseCase = GetQueueStatusUseCase(
-            queueTokenService = queueTokenService
+            queueTokenService = queueTokenService,
         )
     }
 
@@ -31,9 +31,10 @@ class GetQueueStatusUseCaseTest {
         val token = "test-token"
         val command = GetQueueStatusCommand(token = token)
 
-        val queueToken = QueueTokenModel.create(1L, 10)
+        val queueToken = QueueTokenModel.create(1L)
 
         every { queueTokenService.getQueueTokenByToken(token) } returns queueToken
+        every { queueTokenService.getQueuePosition(1L) } returns 10L
 
         // when
         val result = getQueueStatusUseCase.execute(command)

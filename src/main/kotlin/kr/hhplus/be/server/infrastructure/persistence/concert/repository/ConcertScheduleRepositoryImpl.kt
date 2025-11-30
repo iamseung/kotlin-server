@@ -6,7 +6,6 @@ import kr.hhplus.be.server.domain.concert.model.ConcertScheduleModel
 import kr.hhplus.be.server.domain.concert.repository.ConcertScheduleRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
 
 @Repository
 class ConcertScheduleRepositoryImpl(

@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.application.usecase.payment
 
-import io.mockk.Runs
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import kr.hhplus.be.server.domain.concert.model.SeatModel
@@ -52,7 +50,7 @@ class ProcessPaymentUseCaseTest {
             pointService = pointService,
             pointHistoryService = pointHistoryService,
             paymentService = paymentService,
-            queueTokenService = queueTokenService
+            queueTokenService = queueTokenService,
         )
     }
 
@@ -68,7 +66,7 @@ class ProcessPaymentUseCaseTest {
         val command = ProcessPaymentCommand(
             userId = userId,
             reservationId = reservationId,
-            queueToken = queueToken
+            queueToken = queueToken,
         )
 
         val user = UserModel.reconstitute(
@@ -77,7 +75,7 @@ class ProcessPaymentUseCaseTest {
             email = "test@test.com",
             password = "password",
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val reservation = ReservationModel.reconstitute(
             id = reservationId,
@@ -87,7 +85,7 @@ class ProcessPaymentUseCaseTest {
             temporaryReservedAt = java.time.LocalDateTime.now(),
             temporaryExpiredAt = java.time.LocalDateTime.now().plusMinutes(5),
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val seat = SeatModel.reconstitute(
             id = seatId,
@@ -96,7 +94,7 @@ class ProcessPaymentUseCaseTest {
             price = price,
             seatStatus = kr.hhplus.be.server.domain.concert.model.SeatStatus.TEMPORARY_RESERVED,
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val payment = PaymentModel.reconstitute(
             id = 1L,
@@ -106,34 +104,33 @@ class ProcessPaymentUseCaseTest {
             paymentStatus = kr.hhplus.be.server.domain.payment.model.PaymentStatus.COMPLETED,
             paymentAt = java.time.LocalDateTime.now(),
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val token = QueueTokenModel.reconstitute(
-            id = 1L,
             userId = userId,
             token = queueToken,
             queueStatus = kr.hhplus.be.server.domain.queue.model.QueueStatus.ACTIVE,
-            queuePosition = 1,
             activatedAt = java.time.LocalDateTime.now(),
             expiresAt = java.time.LocalDateTime.now().plusMinutes(10),
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val point = PointModel.reconstitute(
             id = 1L,
             userId = userId,
             balance = 0,
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
 
         every { userService.findById(userId) } returns user
         every { reservationService.findById(reservationId) } returns reservation
         every { seatService.findById(seatId) } returns seat
+        every { seatService.update(any()) } returns seat
         every { pointService.usePoint(userId, price) } returns point
         every { pointHistoryService.savePointHistory(userId, price, TransactionType.USE) } returns Unit
         every { paymentService.savePayment(any()) } returns payment
-        every { reservationService.save(reservation) } returns reservation
+        every { reservationService.update(any()) } returns reservation
         every { queueTokenService.getQueueTokenByToken(queueToken) } returns token
         every { queueTokenService.expireQueueToken(token) } returns token
 

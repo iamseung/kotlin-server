@@ -41,7 +41,7 @@ class CreateReservationUseCaseTest {
             seatService = seatService,
             reservationService = reservationService,
             queueTokenService = queueTokenService,
-            concertScheduleService = concertScheduleService
+            concertScheduleService = concertScheduleService,
         )
     }
 
@@ -57,7 +57,7 @@ class CreateReservationUseCaseTest {
             userId = userId,
             scheduleId = scheduleId,
             seatId = seatId,
-            queueToken = queueToken
+            queueToken = queueToken,
         )
 
         val user = UserModel.reconstitute(
@@ -66,14 +66,14 @@ class CreateReservationUseCaseTest {
             email = "test@test.com",
             password = "password",
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val schedule = ConcertScheduleModel.reconstitute(
             id = scheduleId,
             concertId = 1L,
             concertDate = LocalDate.now().plusDays(1),
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val seat = SeatModel.reconstitute(
             id = seatId,
@@ -82,7 +82,7 @@ class CreateReservationUseCaseTest {
             price = 100000,
             seatStatus = kr.hhplus.be.server.domain.concert.model.SeatStatus.AVAILABLE,
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val reservation = ReservationModel.reconstitute(
             id = 1L,
@@ -92,24 +92,24 @@ class CreateReservationUseCaseTest {
             temporaryReservedAt = java.time.LocalDateTime.now(),
             temporaryExpiredAt = java.time.LocalDateTime.now().plusMinutes(5),
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val token = QueueTokenModel.reconstitute(
-            id = 1L,
             userId = userId,
             token = queueToken,
             queueStatus = kr.hhplus.be.server.domain.queue.model.QueueStatus.ACTIVE,
-            queuePosition = 1,
             activatedAt = java.time.LocalDateTime.now(),
             expiresAt = java.time.LocalDateTime.now().plusMinutes(10),
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
 
         every { queueTokenService.getQueueTokenByToken(queueToken) } returns token
+        every { queueTokenService.expireQueueToken(any()) } returns token
         every { userService.findById(userId) } returns user
         every { concertScheduleService.findById(scheduleId) } returns schedule
         every { seatService.findByIdAndConcertScheduleIdWithLock(seatId, scheduleId) } returns seat
+        every { seatService.update(any()) } returns seat
         every { reservationService.save(any()) } returns reservation
 
         // when

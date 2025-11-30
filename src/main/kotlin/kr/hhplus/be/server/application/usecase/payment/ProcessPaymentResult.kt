@@ -7,5 +7,5 @@ data class ProcessPaymentResult(
     val reservationId: Long,
     val userId: Long,
     val amount: Int,
-    val paymentDate: LocalDateTime
+    val paymentDate: LocalDateTime,
 )

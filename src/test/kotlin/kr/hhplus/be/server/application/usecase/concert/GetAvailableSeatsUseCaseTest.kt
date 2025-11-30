@@ -31,7 +31,7 @@ class GetAvailableSeatsUseCaseTest {
         getAvailableSeatsUseCase = GetAvailableSeatsUseCase(
             concertService = concertService,
             concertScheduleService = concertScheduleService,
-            seatService = seatService
+            seatService = seatService,
         )
     }
 
@@ -48,14 +48,14 @@ class GetAvailableSeatsUseCaseTest {
             title = "테스트 콘서트",
             description = "테스트 설명",
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val schedule = ConcertScheduleModel.reconstitute(
             id = scheduleId,
             concertId = concertId,
             concertDate = LocalDate.now().plusDays(1),
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val seat1 = SeatModel.reconstitute(
             id = 1L,
@@ -64,7 +64,7 @@ class GetAvailableSeatsUseCaseTest {
             price = 100000,
             seatStatus = kr.hhplus.be.server.domain.concert.model.SeatStatus.AVAILABLE,
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val seat2 = SeatModel.reconstitute(
             id = 2L,
@@ -73,7 +73,7 @@ class GetAvailableSeatsUseCaseTest {
             price = 100000,
             seatStatus = kr.hhplus.be.server.domain.concert.model.SeatStatus.AVAILABLE,
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
 
         every { concertService.findById(concertId) } returns concert
@@ -105,14 +105,14 @@ class GetAvailableSeatsUseCaseTest {
             title = "테스트 콘서트",
             description = "테스트 설명",
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val schedule = ConcertScheduleModel.reconstitute(
             id = scheduleId,
             concertId = concertId,
             concertDate = LocalDate.now().plusDays(1),
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
 
         every { concertService.findById(concertId) } returns concert

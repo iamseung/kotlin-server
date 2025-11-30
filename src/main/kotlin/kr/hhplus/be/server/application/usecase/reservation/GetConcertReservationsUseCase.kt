@@ -28,9 +28,9 @@ class GetConcertReservationsUseCase(
                     seatId = reservation.seatId,
                     status = reservation.reservationStatus,
                     temporaryReservedAt = reservation.temporaryReservedAt,
-                    temporaryExpiredAt = reservation.temporaryExpiredAt
+                    temporaryExpiredAt = reservation.temporaryExpiredAt,
                 )
-            }
+            },
         )
     }
 }

@@ -4,7 +4,7 @@ import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
 import java.time.LocalDateTime
 
 data class GetConcertReservationsResult(
-    val reservations: List<ReservationInfo>
+    val reservations: List<ReservationInfo>,
 ) {
     data class ReservationInfo(
         val reservationId: Long,
@@ -12,6 +12,6 @@ data class GetConcertReservationsResult(
         val seatId: Long,
         val status: ReservationStatus,
         val temporaryReservedAt: LocalDateTime,
-        val temporaryExpiredAt: LocalDateTime
+        val temporaryExpiredAt: LocalDateTime,
     )
 }

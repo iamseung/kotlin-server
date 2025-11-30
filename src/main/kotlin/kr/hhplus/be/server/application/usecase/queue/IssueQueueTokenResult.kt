@@ -7,5 +7,5 @@ data class IssueQueueTokenResult(
     val token: String,
     val status: QueueStatus,
     val position: Long,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
 )

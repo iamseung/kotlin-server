@@ -3,10 +3,6 @@ package kr.hhplus.be.server.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.api.dto.request.CreateReservationRequest
@@ -15,7 +11,6 @@ import kr.hhplus.be.server.application.usecase.reservation.CreateReservationComm
 import kr.hhplus.be.server.application.usecase.reservation.CreateReservationUseCase
 import kr.hhplus.be.server.application.usecase.reservation.GetConcertReservationsCommand
 import kr.hhplus.be.server.application.usecase.reservation.GetConcertReservationsUseCase
-import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -34,7 +29,7 @@ class ReservationController(
 
     @Operation(
         summary = "좌석 예약 조회",
-        description = "예약한 좌석을 조회합니다."
+        description = "예약한 좌석을 조회합니다.",
     )
     @GetMapping("/{concertId}/reservations")
     fun getConcertReservations(
@@ -69,7 +64,7 @@ class ReservationController(
             userId = request.userId,
             scheduleId = request.scheduleId,
             seatId = request.seatId,
-            queueToken = queueToken
+            queueToken = queueToken,
         )
         val result = createReservationUseCase.execute(command)
         return ReservationResponse(
@@ -77,7 +72,7 @@ class ReservationController(
             seatId = result.seatId,
             reservationStatus = result.status.name,
             temporaryReservedAt = result.reservedAt.toString(),
-            temporaryExpiresAt = result.reservedAt.plusMinutes(5).toString()
+            temporaryExpiresAt = result.reservedAt.plusMinutes(5).toString(),
         )
     }
 }

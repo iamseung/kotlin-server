@@ -21,7 +21,7 @@ class OpenAPIConfig {
                 Info()
                     .title("HangHae Plus Concert Reservation API")
                     .description("콘서트 예약 시스템 API")
-                    .version("1.0.0")
+                    .version("1.0.0"),
             )
     }
 }

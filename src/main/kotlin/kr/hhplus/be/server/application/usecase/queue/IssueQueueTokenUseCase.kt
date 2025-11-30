@@ -19,12 +19,19 @@ class IssueQueueTokenUseCase(
         // 2. 대기열 토큰 생성
         val queueToken = queueTokenService.createQueueToken(user.id)
 
-        // 3. 결과 반환
+        // 3. 실시간 순위 조회 (WAITING 상태일 때만)
+        val position = if (queueToken.isWaiting) {
+            queueTokenService.getQueuePosition(queueToken.userId)
+        } else {
+            0L
+        }
+
+        // 4. 결과 반환
         return IssueQueueTokenResult(
             token = queueToken.token,
             status = queueToken.queueStatus,
-            position = queueToken.queuePosition.toLong(),
-            createdAt = queueToken.createdAt
+            position = position,
+            createdAt = queueToken.createdAt,
         )
     }
 }

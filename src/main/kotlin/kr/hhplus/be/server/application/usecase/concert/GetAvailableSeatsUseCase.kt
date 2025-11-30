@@ -34,9 +34,9 @@ class GetAvailableSeatsUseCase(
                     concertScheduleId = seat.concertScheduleId,
                     seatNumber = seat.seatNumber,
                     price = seat.price,
-                    status = seat.seatStatus
+                    status = seat.seatStatus,
                 )
-            }
+            },
         )
     }
 }

@@ -22,7 +22,7 @@ class GetPointUseCase(
         // 3. 결과 반환
         return GetPointResult(
             userId = user.id,
-            balance = point.balance
+            balance = point.balance,
         )
     }
 }

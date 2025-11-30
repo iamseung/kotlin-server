@@ -61,7 +61,7 @@ class ProcessPaymentUseCase(
             reservationId = paymentModel.reservationId,
             userId = paymentModel.userId,
             amount = paymentModel.amount,
-            paymentDate = paymentModel.paymentAt
+            paymentDate = paymentModel.paymentAt,
         )
     }
 }

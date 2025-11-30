@@ -39,13 +39,15 @@ class CreateReservationUseCase(
         // 5. 예약 생성
         val reservation = reservationService.save(ReservationModel.create(user.id, seat.id))
 
-        // 6. 결과 반환
+        // 6. 토큰 만료 처리 (예약 완료 시 ACTIVE 자리 반납)
+        queueTokenService.expireQueueToken(token)
+
         return CreateReservationResult(
             reservationId = reservation.id,
             userId = reservation.userId,
             seatId = reservation.seatId,
             status = reservation.reservationStatus,
-            reservedAt = reservation.temporaryReservedAt
+            reservedAt = reservation.temporaryReservedAt,
         )
     }
 }
