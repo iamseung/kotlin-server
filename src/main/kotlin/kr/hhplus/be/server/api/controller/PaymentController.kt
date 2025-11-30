@@ -3,16 +3,11 @@ package kr.hhplus.be.server.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.api.dto.request.ProcessPaymentRequest
 import kr.hhplus.be.server.api.dto.response.PaymentResponse
 import kr.hhplus.be.server.application.usecase.payment.ProcessPaymentCommand
 import kr.hhplus.be.server.application.usecase.payment.ProcessPaymentUseCase
-import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
@@ -42,7 +37,7 @@ class PaymentController(
         val command = ProcessPaymentCommand(
             userId = userId,
             reservationId = request.reservationId,
-            queueToken = queueToken
+            queueToken = queueToken,
         )
         val result = processPaymentUseCase.execute(command)
         return PaymentResponse(
@@ -50,7 +45,7 @@ class PaymentController(
             reservationId = result.reservationId,
             userId = result.userId,
             amount = result.amount,
-            paymentStatus = kr.hhplus.be.server.domain.payment.model.PaymentStatus.PENDING
+            paymentStatus = kr.hhplus.be.server.domain.payment.model.PaymentStatus.PENDING,
         )
     }
 }

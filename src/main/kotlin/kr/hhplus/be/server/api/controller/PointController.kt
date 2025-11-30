@@ -3,10 +3,6 @@ package kr.hhplus.be.server.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.api.dto.request.ChargePointRequest
 import kr.hhplus.be.server.api.dto.response.PointResponse
@@ -14,7 +10,6 @@ import kr.hhplus.be.server.application.usecase.point.ChargePointCommand
 import kr.hhplus.be.server.application.usecase.point.ChargePointUseCase
 import kr.hhplus.be.server.application.usecase.point.GetPointCommand
 import kr.hhplus.be.server.application.usecase.point.GetPointUseCase
-import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -46,7 +41,7 @@ class PointController(
         return PointResponse(
             id = null,
             userId = result.userId,
-            balance = result.balance
+            balance = result.balance,
         )
     }
 
@@ -61,14 +56,14 @@ class PointController(
     ): PointResponse {
         val command = ChargePointCommand(
             userId = request.userId,
-            amount = request.amount
+            amount = request.amount,
         )
         val result = chargePointUseCase.execute(command)
 
         return PointResponse(
             id = null,
             userId = result.userId,
-            balance = result.balance
+            balance = result.balance,
         )
     }
 }

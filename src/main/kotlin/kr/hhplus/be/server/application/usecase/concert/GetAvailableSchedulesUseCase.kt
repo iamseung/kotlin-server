@@ -26,9 +26,9 @@ class GetAvailableSchedulesUseCase(
                 GetAvailableSchedulesResult.ScheduleInfo(
                     scheduleId = schedule.id,
                     concertId = schedule.concertId,
-                    concertDate = schedule.concertDate
+                    concertDate = schedule.concertDate,
                 )
-            }
+            },
         )
     }
 }

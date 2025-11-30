@@ -28,7 +28,7 @@ class ChargePointUseCase(
         // 4. 결과 반환
         return ChargePointResult(
             userId = user.id,
-            balance = point.balance
+            balance = point.balance,
         )
     }
 }

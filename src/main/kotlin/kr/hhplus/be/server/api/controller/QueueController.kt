@@ -3,10 +3,6 @@ package kr.hhplus.be.server.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.api.dto.request.IssueQueueTokenRequest
@@ -16,7 +12,6 @@ import kr.hhplus.be.server.application.usecase.queue.GetQueueStatusCommand
 import kr.hhplus.be.server.application.usecase.queue.GetQueueStatusUseCase
 import kr.hhplus.be.server.application.usecase.queue.IssueQueueTokenCommand
 import kr.hhplus.be.server.application.usecase.queue.IssueQueueTokenUseCase
-import kr.hhplus.be.server.common.dto.ErrorResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -53,15 +48,14 @@ class QueueController(
         val command = IssueQueueTokenCommand(userId = request.userId)
         val result = issueQueueTokenUseCase.execute(command)
         return QueueTokenResponse(
-            id = null,
             userId = request.userId,
             token = result.token,
             queueStatus = result.status,
-            queuePosition = result.position.toInt(),
+            queuePosition = result.position,
             activatedAt = null,
             expiresAt = null,
             createdAt = result.createdAt,
-            updatedAt = result.createdAt
+            updatedAt = result.createdAt,
         )
     }
 
@@ -84,14 +78,14 @@ class QueueController(
         val command = GetQueueStatusCommand(token = queueToken)
         val result = getQueueStatusUseCase.execute(command)
         val estimatedTime = if (result.status == kr.hhplus.be.server.domain.queue.model.QueueStatus.WAITING) {
-            result.position.toInt()
+            result.position
         } else {
-            0
+            0L
         }
         return QueueStatusResponse(
-            queuePosition = result.position.toInt(),
+            queuePosition = result.position,
             queueStatus = result.status,
-            estimatedWaitTimeMinutes = estimatedTime
+            estimatedWaitTimeMinutes = estimatedTime,
         )
     }
 }

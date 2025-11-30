@@ -25,7 +25,7 @@ class IssueQueueTokenUseCaseTest {
 
         issueQueueTokenUseCase = IssueQueueTokenUseCase(
             userService = userService,
-            queueTokenService = queueTokenService
+            queueTokenService = queueTokenService,
         )
     }
 
@@ -42,22 +42,21 @@ class IssueQueueTokenUseCaseTest {
             email = "test@test.com",
             password = "password",
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val queueToken = QueueTokenModel.reconstitute(
-            id = 1L,
             userId = userId,
             token = "generated-token",
             queueStatus = kr.hhplus.be.server.domain.queue.model.QueueStatus.WAITING,
-            queuePosition = 5,
             activatedAt = null,
             expiresAt = null,
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
 
         every { userService.findById(userId) } returns user
         every { queueTokenService.createQueueToken(userId) } returns queueToken
+        every { queueTokenService.getQueuePosition(userId) } returns 5L
 
         // when
         val result = issueQueueTokenUseCase.execute(command)

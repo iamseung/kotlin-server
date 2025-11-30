@@ -26,7 +26,7 @@ class GetAvailableSchedulesUseCaseTest {
 
         getAvailableSchedulesUseCase = GetAvailableSchedulesUseCase(
             concertService = concertService,
-            concertScheduleService = concertScheduleService
+            concertScheduleService = concertScheduleService,
         )
     }
 
@@ -42,21 +42,21 @@ class GetAvailableSchedulesUseCaseTest {
             title = "테스트 콘서트",
             description = "테스트 설명",
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val schedule1 = ConcertScheduleModel.reconstitute(
             id = 1L,
             concertId = concertId,
             concertDate = LocalDate.now().plusDays(1),
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val schedule2 = ConcertScheduleModel.reconstitute(
             id = 2L,
             concertId = concertId,
             concertDate = LocalDate.now().plusDays(2),
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
 
         every { concertService.findById(concertId) } returns concert
@@ -85,7 +85,7 @@ class GetAvailableSchedulesUseCaseTest {
             title = "테스트 콘서트",
             description = "테스트 설명",
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
 
         every { concertService.findById(concertId) } returns concert

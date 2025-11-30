@@ -25,7 +25,7 @@ class GetPointUseCaseTest {
 
         getPointUseCase = GetPointUseCase(
             userService = userService,
-            pointService = pointService
+            pointService = pointService,
         )
     }
 
@@ -42,14 +42,14 @@ class GetPointUseCaseTest {
             email = "test@test.com",
             password = "password",
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val point = PointModel.reconstitute(
             id = 1L,
             userId = userId,
             balance = 50000,
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
 
         every { userService.findById(userId) } returns user

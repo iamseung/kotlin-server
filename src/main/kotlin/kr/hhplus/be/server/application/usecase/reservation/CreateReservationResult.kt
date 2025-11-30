@@ -8,5 +8,5 @@ data class CreateReservationResult(
     val userId: Long,
     val seatId: Long,
     val status: ReservationStatus,
-    val reservedAt: LocalDateTime
+    val reservedAt: LocalDateTime,
 )

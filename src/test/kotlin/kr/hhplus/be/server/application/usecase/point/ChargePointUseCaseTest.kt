@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.application.usecase.point
 
-import io.mockk.Runs
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import kr.hhplus.be.server.domain.point.model.PointModel
@@ -32,7 +30,7 @@ class ChargePointUseCaseTest {
         chargePointUseCase = ChargePointUseCase(
             userService = userService,
             pointService = pointService,
-            pointHistoryService = pointHistoryService
+            pointHistoryService = pointHistoryService,
         )
     }
 
@@ -50,14 +48,14 @@ class ChargePointUseCaseTest {
             email = "test@test.com",
             password = "password",
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
         val chargedPoint = PointModel.reconstitute(
             id = 1L,
             userId = userId,
             balance = 10000,
             createdAt = java.time.LocalDateTime.now(),
-            updatedAt = java.time.LocalDateTime.now()
+            updatedAt = java.time.LocalDateTime.now(),
         )
 
         every { userService.findById(userId) } returns user
