@@ -10,4 +10,5 @@ interface SeatRepository {
     fun findByIdWithLock(id: Long): SeatModel
     fun findAllByConcertScheduleId(concertScheduleId: Long): List<SeatModel>
     fun findAllByConcertScheduleIdAndStatus(concertScheduleId: Long, status: SeatStatus): List<SeatModel>
+    fun findAllByStatus(status: SeatStatus): List<SeatModel>
 }

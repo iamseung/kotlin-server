@@ -43,6 +43,21 @@ class SeatModel private constructor(
         this.updatedAt = LocalDateTime.now()
     }
 
+    fun isExpiredTemporaryReservation(expirationMinutes: Long = 5): Boolean {
+        if (seatStatus != SeatStatus.TEMPORARY_RESERVED) {
+            return false
+        }
+        val expirationTime = updatedAt.plusMinutes(expirationMinutes)
+        return LocalDateTime.now().isAfter(expirationTime)
+    }
+
+    fun restoreToAvailable() {
+        if (seatStatus == SeatStatus.TEMPORARY_RESERVED) {
+            this.seatStatus = SeatStatus.AVAILABLE
+            this.updatedAt = LocalDateTime.now()
+        }
+    }
+
     companion object {
         fun create(concertScheduleId: Long, seatNumber: Int, price: Int): SeatModel {
             val now = LocalDateTime.now()

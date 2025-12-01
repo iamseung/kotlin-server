@@ -39,4 +39,8 @@ class SeatRepositoryImpl(
     override fun findAllByConcertScheduleIdAndStatus(concertScheduleId: Long, status: SeatStatus): List<SeatModel> {
         return seatJpaRepository.findAllByConcertScheduleIdAndSeatStatus(concertScheduleId, status).map { it.toModel() }
     }
+
+    override fun findAllByStatus(status: SeatStatus): List<SeatModel> {
+        return seatJpaRepository.findAllBySeatStatus(status).map { it.toModel() }
+    }
 }
