@@ -20,4 +20,8 @@ class ReservationService(
     fun save(reservationModel: ReservationModel): ReservationModel {
         return reservationRepository.save(reservationModel)
     }
+
+    fun update(reservationModel: ReservationModel): ReservationModel {
+        return reservationRepository.update(reservationModel)
+    }
 }

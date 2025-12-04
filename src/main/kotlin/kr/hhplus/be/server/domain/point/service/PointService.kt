@@ -19,13 +19,13 @@ class PointService(
         val point = pointRepository.findByUserIdWithLock(userId)
             ?: throw BusinessException(ErrorCode.POINT_NOT_FOUND)
         point.chargePoint(amount)
-        return pointRepository.save(point)
+        return pointRepository.update(point)
     }
 
     fun usePoint(userId: Long, amount: Int): PointModel {
         val point = pointRepository.findByUserIdWithLock(userId)
             ?: throw BusinessException(ErrorCode.POINT_NOT_FOUND)
         point.usePoint(amount)
-        return pointRepository.save(point)
+        return pointRepository.update(point)
     }
 }

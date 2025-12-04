@@ -12,6 +12,8 @@ interface SeatJpaRepository : JpaRepository<Seat, Long> {
 
     fun findAllByConcertScheduleIdAndSeatStatus(concertScheduleId: Long, status: SeatStatus): List<Seat>
 
+    fun findAllBySeatStatus(status: SeatStatus): List<Seat>
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Seat s WHERE s.id = :id")
     fun findByIdWithLock(id: Long): Seat?

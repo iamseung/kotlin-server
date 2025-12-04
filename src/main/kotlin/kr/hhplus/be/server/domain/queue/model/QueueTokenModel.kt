@@ -6,11 +6,9 @@ import java.time.LocalDateTime
 import java.util.*
 
 class QueueTokenModel private constructor(
-    var id: Long,
     val userId: Long,
     val token: String,
     var queueStatus: QueueStatus,
-    var queuePosition: Int,
     var activatedAt: LocalDateTime?,
     var expiresAt: LocalDateTime?,
     val createdAt: LocalDateTime,
@@ -25,7 +23,6 @@ class QueueTokenModel private constructor(
 
     fun activate() {
         this.queueStatus = QueueStatus.ACTIVE
-        this.queuePosition = 0
         this.activatedAt = LocalDateTime.now()
         this.expiresAt = LocalDateTime.now().plusHours(1)
         this.updatedAt = LocalDateTime.now()
@@ -37,7 +34,7 @@ class QueueTokenModel private constructor(
     }
 
     fun validateActive() {
-        if (queueStatus != QueueStatus.ACTIVE) {
+        if (!isActive) {
             throw AuthorizationException(ErrorCode.QUEUE_TOKEN_NOT_ACTIVE)
         }
 
@@ -49,22 +46,13 @@ class QueueTokenModel private constructor(
         }
     }
 
-    fun updatePosition(newPosition: Int) {
-        if (queueStatus == QueueStatus.WAITING) {
-            this.queuePosition = newPosition
-            this.updatedAt = LocalDateTime.now()
-        }
-    }
-
     companion object {
-        fun create(userId: Long, position: Int): QueueTokenModel {
+        fun create(userId: Long): QueueTokenModel {
             val now = LocalDateTime.now()
             return QueueTokenModel(
-                id = 0L,
                 userId = userId,
                 token = UUID.randomUUID().toString(),
                 queueStatus = QueueStatus.WAITING,
-                queuePosition = position,
                 activatedAt = null,
                 expiresAt = null,
                 createdAt = now,
@@ -73,22 +61,18 @@ class QueueTokenModel private constructor(
         }
 
         fun reconstitute(
-            id: Long,
             userId: Long,
             token: String,
             queueStatus: QueueStatus,
-            queuePosition: Int,
             activatedAt: LocalDateTime?,
             expiresAt: LocalDateTime?,
             createdAt: LocalDateTime,
             updatedAt: LocalDateTime,
         ): QueueTokenModel {
             return QueueTokenModel(
-                id = id,
                 userId = userId,
                 token = token,
                 queueStatus = queueStatus,
-                queuePosition = queuePosition,
                 activatedAt = activatedAt,
                 expiresAt = expiresAt,
                 createdAt = createdAt,

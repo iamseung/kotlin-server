@@ -13,6 +13,12 @@ class SeatRepositoryImpl(
     private val seatJpaRepository: SeatJpaRepository,
 ) : SeatRepository {
 
+    override fun update(seatModel: SeatModel): SeatModel {
+        val entity = seatJpaRepository.findByIdOrNull(seatModel.id) ?: throw BusinessException(ErrorCode.SEAT_NOT_FOUND)
+        entity.updateFromDomain(seatModel)
+        return seatJpaRepository.save(entity).toModel()
+    }
+
     override fun findById(id: Long): SeatModel? {
         return seatJpaRepository.findByIdOrNull(id)?.toModel()
     }
@@ -32,5 +38,9 @@ class SeatRepositoryImpl(
 
     override fun findAllByConcertScheduleIdAndStatus(concertScheduleId: Long, status: SeatStatus): List<SeatModel> {
         return seatJpaRepository.findAllByConcertScheduleIdAndSeatStatus(concertScheduleId, status).map { it.toModel() }
+    }
+
+    override fun findAllByStatus(status: SeatStatus): List<SeatModel> {
+        return seatJpaRepository.findAllBySeatStatus(status).map { it.toModel() }
     }
 }

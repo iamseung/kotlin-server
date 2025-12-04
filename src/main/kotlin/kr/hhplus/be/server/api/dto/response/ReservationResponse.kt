@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.api.dto.response
 
 import io.swagger.v3.oas.annotations.media.Schema
+import kr.hhplus.be.server.application.usecase.reservation.GetConcertReservationsResult
 import kr.hhplus.be.server.domain.reservation.model.ReservationModel
 
 @Schema(description = "예약 응답")
@@ -25,6 +26,16 @@ data class ReservationResponse(
                 reservationStatus = reservationModel.reservationStatus.name,
                 temporaryReservedAt = reservationModel.temporaryReservedAt.toString(),
                 temporaryExpiresAt = reservationModel.temporaryExpiredAt.toString(),
+            )
+        }
+
+        fun from(reservationInfo: GetConcertReservationsResult.ReservationInfo): ReservationResponse {
+            return ReservationResponse(
+                id = reservationInfo.reservationId,
+                seatId = reservationInfo.seatId,
+                reservationStatus = reservationInfo.status.name,
+                temporaryReservedAt = reservationInfo.temporaryReservedAt.toString(),
+                temporaryExpiresAt = reservationInfo.temporaryExpiredAt.toString(),
             )
         }
     }

@@ -19,6 +19,13 @@ class PointRepositoryImpl(
         return saved.toModel()
     }
 
+    override fun update(pointModel: PointModel): PointModel {
+        val entity = pointJpaRepository.findByIdOrNull(pointModel.id)
+            ?: throw BusinessException(ErrorCode.POINT_NOT_FOUND)
+        entity.updateFromDomain(pointModel)
+        return pointJpaRepository.save(entity).toModel()
+    }
+
     override fun findById(id: Long): PointModel? {
         return pointJpaRepository.findByIdOrNull(id)?.toModel()
     }

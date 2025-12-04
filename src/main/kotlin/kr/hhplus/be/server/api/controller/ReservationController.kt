@@ -3,16 +3,14 @@ package kr.hhplus.be.server.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.api.dto.request.CreateReservationRequest
 import kr.hhplus.be.server.api.dto.response.ReservationResponse
-import kr.hhplus.be.server.application.ReservationFacade
-import kr.hhplus.be.server.common.dto.ErrorResponse
+import kr.hhplus.be.server.application.usecase.reservation.CreateReservationCommand
+import kr.hhplus.be.server.application.usecase.reservation.CreateReservationUseCase
+import kr.hhplus.be.server.application.usecase.reservation.GetConcertReservationsCommand
+import kr.hhplus.be.server.application.usecase.reservation.GetConcertReservationsUseCase
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -25,15 +23,22 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/concerts")
 @Tag(name = "Reservations", description = "좌석 예약 관리")
 class ReservationController(
-    private val reservationService: ReservationFacade,
+    private val getConcertReservationsUseCase: GetConcertReservationsUseCase,
+    private val createReservationUseCase: CreateReservationUseCase,
 ) {
 
+    @Operation(
+        summary = "좌석 예약 조회",
+        description = "예약한 좌석을 조회합니다.",
+    )
     @GetMapping("/{concertId}/reservations")
     fun getConcertReservations(
         @PathVariable concertId: Long,
         @RequestHeader("User-Id") userId: Long,
     ): List<ReservationResponse> {
-        return reservationService.getConcertReservations(userId)
+        val command = GetConcertReservationsCommand(userId = userId)
+        val result = getConcertReservationsUseCase.execute(command)
+        return result.reservations.map { ReservationResponse.from(it) }
     }
 
     @Operation(
@@ -47,60 +52,6 @@ class ReservationController(
         operationId = "createReservation",
         security = [SecurityRequirement(name = "QueueToken")],
     )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "201",
-                description = "예약 성공 (임시 배정)",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ReservationResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "잘못된 요청 (이미 예약된 좌석, 포인트 부족 등)",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "401",
-                description = "인증 실패 (유효하지 않은 토큰)",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "403",
-                description = "권한 없음 (대기열 토큰이 ACTIVE 상태가 아님)",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "콘서트를 찾을 수 없음",
-                content = [
-                    Content(
-                        mediaType = "application/json",
-                        schema = Schema(implementation = ErrorResponse::class),
-                    ),
-                ],
-            ),
-        ],
-    )
     @PostMapping("/{concertId}/reservations")
     fun createReservation(
         @Parameter(description = "콘서트 ID", required = true)
@@ -109,6 +60,19 @@ class ReservationController(
         @RequestHeader("X-Queue-Token") queueToken: String,
         @RequestBody request: CreateReservationRequest,
     ): ReservationResponse {
-        return reservationService.createReservation(request.userId, request.scheduleId, request.seatId, queueToken)
+        val command = CreateReservationCommand(
+            userId = request.userId,
+            scheduleId = request.scheduleId,
+            seatId = request.seatId,
+            queueToken = queueToken,
+        )
+        val result = createReservationUseCase.execute(command)
+        return ReservationResponse(
+            id = result.reservationId,
+            seatId = result.seatId,
+            reservationStatus = result.status.name,
+            temporaryReservedAt = result.reservedAt.toString(),
+            temporaryExpiresAt = result.reservedAt.plusMinutes(5).toString(),
+        )
     }
 }

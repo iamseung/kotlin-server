@@ -10,13 +10,12 @@ spring:
       maximum-pool-size: 3
       connection-timeout: 10000
       max-lifetime: 60000
-    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     open-in-view: false
     generate-ddl: false
     show-sql: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
@@ -44,5 +43,39 @@ spring.config.activate.on-profile: local
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
     username: application
     password: application
+  data:
+    redis:
+      host: localhost
+      port: 6380
+
+---
+spring.config.activate.on-profile: test
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;NON_KEYWORDS=USER;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    name: H2TestDataSource
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximum-pool-size: 3
+      connection-timeout: 10000
+      max-lifetime: 60000
+      jdbc-url: jdbc:h2:mem:testdb;MODE=MySQL;NON_KEYWORDS=USER;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+  data:
+    redis:
+      host: localhost
+      port: 6379

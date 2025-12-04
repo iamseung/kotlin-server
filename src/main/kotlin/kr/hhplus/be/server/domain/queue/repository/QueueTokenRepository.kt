@@ -5,7 +5,8 @@ import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 
 interface QueueTokenRepository {
     fun save(queueTokenModel: QueueTokenModel): QueueTokenModel
-    fun findById(id: Long): QueueTokenModel?
+    fun update(queueTokenModel: QueueTokenModel): QueueTokenModel
+    fun findByUserId(userId: Long): QueueTokenModel?
     fun findByToken(token: String): QueueTokenModel?
     fun findByTokenOrThrow(token: String): QueueTokenModel
     fun findAllByStatus(status: QueueStatus): List<QueueTokenModel>
