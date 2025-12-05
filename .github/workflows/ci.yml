@@ -24,13 +24,27 @@ jobs:
 
       - name: Run tests
         id: test
-        run: ./gradlew test --continue 2>&1 | tee test-output.txt
+        run: ./gradlew test --continue
         continue-on-error: true
+
+      # ✅ 테스트 결과를 PR 코멘트로 등록
+      - name: 테스트 결과를 PR에 코멘트로 등록합니다
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: '**/build/test-results/test/TEST-*.xml'
+
+      # ✅ 실패한 테스트 코드 라인에 체크 표시
+      - name: 테스트 실패 시, 실패한 코드 라인에 Check 코멘트를 등록합니다
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+          token: ${{ github.token }}
 
       - name: Check test results
         id: check
         run: |
-          # 테스트 리포트에서 결과 확인
           if [ -f build/reports/tests/test/index.html ]; then
             PASSED=$(grep -oP '\d+(?= passed)' build/reports/tests/test/index.html | head -1 || echo "0")
             FAILED=$(grep -oP '\d+(?= failed)' build/reports/tests/test/index.html | head -1 || echo "0")
@@ -43,7 +57,6 @@ jobs:
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
           echo "✅ Passed: $PASSED, ❌ Failed: $FAILED"
           
-          # 통과한 테스트가 0개면 실패 표시
           if [ "$PASSED" -eq 0 ]; then
             echo "all_failed=true" >> $GITHUB_OUTPUT
           else
@@ -63,3 +76,18 @@ jobs:
       - name: Fail workflow if tests failed
         if: steps.test.outcome == 'failure'
         run: exit 1
+  ```
+
+## 추가된 기능
+
+  | 액션 | 기능 |
+  |------|------|
+  | `publish-unit-test-result-action@v2` | PR에 테스트 요약 코멘트 (통과/실패 개수, 시간 등) |
+  | `action-junit-report@v4` | 실패한 테스트의 코드 라인에 직접 코멘트 표시 |
+
+## PR에 표시되는 예시
+
+  **1. 요약 코멘트:**
+  ```
+Tests: 45 passed, 2 failed, 47 total
+Duration: 1m 23s
