@@ -1,0 +1,65 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests
+        id: test
+        run: ./gradlew test --continue 2>&1 | tee test-output.txt
+        continue-on-error: true
+
+      - name: Check test results
+        id: check
+        run: |
+          # 테스트 리포트에서 결과 확인
+          if [ -f build/reports/tests/test/index.html ]; then
+            PASSED=$(grep -oP '\d+(?= passed)' build/reports/tests/test/index.html | head -1 || echo "0")
+            FAILED=$(grep -oP '\d+(?= failed)' build/reports/tests/test/index.html | head -1 || echo "0")
+          else
+            PASSED=0
+            FAILED=0
+          fi
+          
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "✅ Passed: $PASSED, ❌ Failed: $FAILED"
+          
+          # 통과한 테스트가 0개면 실패 표시
+          if [ "$PASSED" -eq 0 ]; then
+            echo "all_failed=true" >> $GITHUB_OUTPUT
+          else
+            echo "all_failed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Close PR if all tests failed
+        if: steps.check.outputs.all_failed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr close ${{ github.event.pull_request.number }} \
+            --comment "❌ 모든 테스트가 실패했습니다. PR을 자동으로 닫습니다.
+
+          테스트를 수정한 후 다시 PR을 열어주세요."
+
+      - name: Fail workflow if tests failed
+        if: steps.test.outcome == 'failure'
+        run: exit 1
