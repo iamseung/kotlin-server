@@ -28,10 +28,9 @@ class ProcessPaymentUseCase(
         // 1. 사용자 검증
         val user = userService.findById(command.userId)
 
-        // 2. 예약 검증
-        val reservation = reservationService.findById(command.reservationId)
-        reservation.validateOwnership(user.id)
-        reservation.validatePayable()
+        // 2. 예약 검증 (비관적 락으로 중복 결제 방지)
+        val reservation = reservationService.findByIdWithLock(command.reservationId)
+        reservation.validate(user.id)
 
         // 3. 좌석 조회
         val seat = seatService.findById(reservation.seatId)

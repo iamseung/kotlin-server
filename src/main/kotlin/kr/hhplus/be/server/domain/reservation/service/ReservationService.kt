@@ -13,6 +13,10 @@ class ReservationService(
         return reservationRepository.findByIdOrThrow(reservationId)
     }
 
+    fun findByIdWithLock(reservationId: Long): ReservationModel {
+        return reservationRepository.findByIdWithLock(reservationId)
+    }
+
     fun findAllByUserId(userId: Long): List<ReservationModel> {
         return reservationRepository.findAllByUserId(userId)
     }

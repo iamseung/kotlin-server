@@ -1,7 +1,12 @@
 package kr.hhplus.be.server.concurrency
 
+import kr.hhplus.be.server.application.usecase.point.ChargePointCommand
+import kr.hhplus.be.server.application.usecase.point.ChargePointUseCase
+import kr.hhplus.be.server.domain.point.service.PointService
 import kr.hhplus.be.server.infrastructure.persistence.point.entity.Point
 import kr.hhplus.be.server.infrastructure.persistence.point.repository.PointJpaRepository
+import kr.hhplus.be.server.infrastructure.persistence.user.entity.User
+import kr.hhplus.be.server.infrastructure.persistence.user.repository.UserJpaRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
@@ -9,7 +14,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.transaction.support.TransactionTemplate
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -26,14 +30,21 @@ import java.util.concurrent.atomic.AtomicInteger
 class PointConcurrencyTest {
 
     @Autowired
+    private lateinit var chargePointUseCase: ChargePointUseCase
+
+    @Autowired
+    private lateinit var pointService: PointService
+
+    @Autowired
     private lateinit var pointJpaRepository: PointJpaRepository
 
     @Autowired
-    private lateinit var transactionTemplate: TransactionTemplate
+    private lateinit var userJpaRepository: UserJpaRepository
 
     @AfterEach
     fun cleanup() {
         pointJpaRepository.deleteAll()
+        userJpaRepository.deleteAll()
     }
 
     @Test

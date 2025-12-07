@@ -7,5 +7,6 @@ interface ReservationRepository {
     fun update(reservationModel: ReservationModel): ReservationModel
     fun findById(id: Long): ReservationModel?
     fun findByIdOrThrow(id: Long): ReservationModel
+    fun findByIdWithLock(id: Long): ReservationModel
     fun findAllByUserId(userId: Long): List<ReservationModel>
 }

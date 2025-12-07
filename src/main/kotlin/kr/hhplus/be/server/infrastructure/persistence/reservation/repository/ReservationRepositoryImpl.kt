@@ -34,6 +34,11 @@ class ReservationRepositoryImpl(
         return findById(id) ?: throw BusinessException(ErrorCode.RESERVATION_NOT_FOUND)
     }
 
+    override fun findByIdWithLock(id: Long): ReservationModel {
+        return reservationJpaRepository.findByIdWithLock(id)?.toModel()
+            ?: throw BusinessException(ErrorCode.RESERVATION_NOT_FOUND)
+    }
+
     override fun findAllByUserId(userId: Long): List<ReservationModel> {
         return reservationJpaRepository.findAllByUserId(userId).map { it.toModel() }
     }
