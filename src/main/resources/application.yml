@@ -15,10 +15,16 @@ spring:
     generate-ddl: false
     show-sql: false
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:hhplus-secret-key-please-change-this-in-production-minimum-256-bits-required-for-hs256}
+  access-token-validity: 900000      # 15분 (900,000 ms)
+  refresh-token-validity: 604800000  # 7일 (604,800,000 ms)
 
 # OpenAPI/Swagger Configuration
 springdoc:
@@ -46,10 +52,16 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: application
     password: application
+  jpa:
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
   data:
     redis:
       host: localhost
-      port: 6380
+      port: 6379
 
 ---
 spring.config.activate.on-profile: test
@@ -75,6 +87,9 @@ spring:
         format_sql: true
         show_sql: true
         dialect: org.hibernate.dialect.H2Dialect
+  sql:
+    init:
+      mode: never
   data:
     redis:
       host: localhost
