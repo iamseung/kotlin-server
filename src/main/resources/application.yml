@@ -7,9 +7,10 @@ spring:
     name: HangHaePlusDataSource
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
-      maximum-pool-size: 3
-      connection-timeout: 10000
-      max-lifetime: 60000
+      maximum-pool-size: 20          # 동시 활성 100명 / 5 (여유)
+      minimum-idle: 5                # 최소 유지 커넥션
+      connection-timeout: 10000      # 커넥션 획득 대기 (10초)
+      max-lifetime: 60000            # 커넥션 최대 수명 (60초)
   jpa:
     open-in-view: false
     generate-ddl: false
@@ -19,6 +20,8 @@ spring:
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
+      javax.persistence.lock.timeout: 3000   # Pessimistic Lock 타임아웃 (3초)
+      hibernate.query.timeout: 5000          # 쿼리 타임아웃 (5)
 
 # JWT Configuration
 jwt:

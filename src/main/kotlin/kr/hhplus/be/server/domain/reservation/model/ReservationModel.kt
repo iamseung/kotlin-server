@@ -15,6 +15,11 @@ class ReservationModel private constructor(
     var updatedAt: LocalDateTime,
 ) {
 
+    fun validate(userId: Long) {
+        validateOwnership(userId)
+        validatePayable()
+    }
+
     fun validateOwnership(userId: Long) {
         if (this.userId != userId) {
             throw BusinessException(ErrorCode.INVALID_RESERVATION)
@@ -28,7 +33,6 @@ class ReservationModel private constructor(
     }
 
     fun confirmPayment() {
-        validatePayable()
         this.reservationStatus = ReservationStatus.CONFIRMED
         this.updatedAt = LocalDateTime.now()
     }

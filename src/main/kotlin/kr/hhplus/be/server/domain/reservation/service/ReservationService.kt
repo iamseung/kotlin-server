@@ -3,6 +3,7 @@ package kr.hhplus.be.server.domain.reservation.service
 import kr.hhplus.be.server.domain.reservation.model.ReservationModel
 import kr.hhplus.be.server.domain.reservation.repository.ReservationRepository
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class ReservationService(
@@ -11,6 +12,10 @@ class ReservationService(
 
     fun findById(reservationId: Long): ReservationModel {
         return reservationRepository.findByIdOrThrow(reservationId)
+    }
+
+    fun findByIdWithLock(reservationId: Long): ReservationModel {
+        return reservationRepository.findByIdWithLock(reservationId)
     }
 
     fun findAllByUserId(userId: Long): List<ReservationModel> {
@@ -23,5 +28,9 @@ class ReservationService(
 
     fun update(reservationModel: ReservationModel): ReservationModel {
         return reservationRepository.update(reservationModel)
+    }
+
+    fun findExpiredReservationSeatIds(now: LocalDateTime): List<Long> {
+        return reservationRepository.findExpiredReservationSeatIds(now)
     }
 }

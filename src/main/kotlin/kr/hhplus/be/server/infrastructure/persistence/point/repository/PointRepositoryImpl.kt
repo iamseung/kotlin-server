@@ -42,7 +42,8 @@ class PointRepositoryImpl(
         return findByUserId(userId) ?: throw BusinessException(ErrorCode.POINT_NOT_FOUND)
     }
 
-    override fun findByUserIdWithLock(userId: Long): PointModel? {
+    override fun findByUserIdWithLock(userId: Long): PointModel {
         return pointJpaRepository.findByUserIdWithLock(userId)?.toModel()
+            ?: throw BusinessException(ErrorCode.POINT_NOT_FOUND)
     }
 }

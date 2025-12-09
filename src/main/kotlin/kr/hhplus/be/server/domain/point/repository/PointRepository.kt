@@ -9,5 +9,5 @@ interface PointRepository {
     fun findByIdOrThrow(id: Long): PointModel
     fun findByUserId(userId: Long): PointModel?
     fun findByUserIdOrThrow(userId: Long): PointModel
-    fun findByUserIdWithLock(userId: Long): PointModel?
+    fun findByUserIdWithLock(userId: Long): PointModel
 }
