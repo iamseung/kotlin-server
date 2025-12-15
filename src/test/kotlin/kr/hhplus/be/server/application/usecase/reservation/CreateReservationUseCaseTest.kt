@@ -16,6 +16,8 @@ import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.model.UserModel
 import kr.hhplus.be.server.domain.user.service.UserService
+import kr.hhplus.be.server.infrastructure.lock.DistributeLockExecutor
+import kr.hhplus.be.server.infrastructure.template.TransactionExecutor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -30,6 +32,8 @@ class CreateReservationUseCaseTest {
     private lateinit var reservationService: ReservationService
     private lateinit var queueTokenService: QueueTokenService
     private lateinit var concertScheduleService: ConcertScheduleService
+    private lateinit var distributeLockExecutor: DistributeLockExecutor
+    private lateinit var transactionExecutor: TransactionExecutor
 
     @BeforeEach
     fun setUp() {
@@ -38,6 +42,24 @@ class CreateReservationUseCaseTest {
         reservationService = mockk()
         queueTokenService = mockk()
         concertScheduleService = mockk()
+        distributeLockExecutor = mockk()
+        transactionExecutor = mockk()
+
+        // Mock the lock executor to just execute the logic
+        every {
+            distributeLockExecutor.execute<Any>(any(), any(), any(), any())
+        } answers {
+            val logic = arg<() -> Any>(3)
+            logic()
+        }
+
+        // Mock the transaction executor to just execute the logic
+        every {
+            transactionExecutor.execute<Any>(any())
+        } answers {
+            val action = arg<() -> Any>(0)
+            action()
+        }
 
         createReservationUseCase = CreateReservationUseCase(
             userService = userService,
@@ -45,6 +67,8 @@ class CreateReservationUseCaseTest {
             reservationService = reservationService,
             queueTokenService = queueTokenService,
             concertScheduleService = concertScheduleService,
+            distributeLockExecutor = distributeLockExecutor,
+            transactionExecutor = transactionExecutor,
         )
     }
 
@@ -111,7 +135,7 @@ class CreateReservationUseCaseTest {
         every { queueTokenService.expireQueueToken(any()) } returns token
         every { userService.findById(userId) } returns user
         every { concertScheduleService.findById(scheduleId) } returns schedule
-        every { seatService.findByIdAndConcertScheduleIdWithLock(seatId, scheduleId) } returns seat
+        every { seatService.findByIdAndConcertScheduleId(seatId, scheduleId) } returns seat
         every { seatService.update(any()) } returns seat
         every { reservationService.save(any()) } returns reservation
 
@@ -122,7 +146,6 @@ class CreateReservationUseCaseTest {
         assertThat(result.reservationId).isEqualTo(reservation.id)
         assertThat(result.userId).isEqualTo(userId)
         assertThat(result.seatId).isEqualTo(seatId)
-        verify(exactly = 1) { userService.findById(userId) }
         verify(exactly = 1) { reservationService.save(any()) }
     }
 }

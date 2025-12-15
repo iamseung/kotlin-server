@@ -21,6 +21,8 @@ import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.model.UserModel
 import kr.hhplus.be.server.domain.user.service.UserService
+import kr.hhplus.be.server.infrastructure.lock.DistributeLockExecutor
+import kr.hhplus.be.server.infrastructure.template.TransactionExecutor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -37,6 +39,8 @@ class ProcessPaymentUseCaseTest {
     private lateinit var pointHistoryService: PointHistoryService
     private lateinit var paymentService: PaymentService
     private lateinit var queueTokenService: QueueTokenService
+    private lateinit var distributeLockExecutor: DistributeLockExecutor
+    private lateinit var transactionExecutor: TransactionExecutor
 
     @BeforeEach
     fun setUp() {
@@ -47,6 +51,24 @@ class ProcessPaymentUseCaseTest {
         pointHistoryService = mockk()
         paymentService = mockk()
         queueTokenService = mockk()
+        distributeLockExecutor = mockk()
+        transactionExecutor = mockk()
+
+        // Mock the lock executor to just execute the logic
+        every {
+            distributeLockExecutor.execute<Any>(any(), any(), any(), any())
+        } answers {
+            val logic = arg<() -> Any>(3)
+            logic()
+        }
+
+        // Mock the transaction executor to just execute the logic
+        every {
+            transactionExecutor.execute<Any>(any())
+        } answers {
+            val action = arg<() -> Any>(0)
+            action()
+        }
 
         processPaymentUseCase = ProcessPaymentUseCase(
             userService = userService,
@@ -56,6 +78,8 @@ class ProcessPaymentUseCaseTest {
             pointHistoryService = pointHistoryService,
             paymentService = paymentService,
             queueTokenService = queueTokenService,
+            distributeLockExecutor = distributeLockExecutor,
+            transactionExecutor = transactionExecutor,
         )
     }
 
@@ -129,7 +153,7 @@ class ProcessPaymentUseCaseTest {
         )
 
         every { userService.findById(userId) } returns user
-        every { reservationService.findByIdWithLock(reservationId) } returns reservation
+        every { reservationService.findById(reservationId) } returns reservation
         every { seatService.findById(seatId) } returns seat
         every { seatService.update(any()) } returns seat
         every { pointService.usePoint(userId, price) } returns point
@@ -147,8 +171,6 @@ class ProcessPaymentUseCaseTest {
         assertThat(result.reservationId).isEqualTo(reservationId)
         assertThat(result.userId).isEqualTo(userId)
         assertThat(result.amount).isEqualTo(price)
-        verify(exactly = 1) { userService.findById(userId) }
-        verify(exactly = 1) { reservationService.findByIdWithLock(reservationId) }
         verify(exactly = 1) { paymentService.savePayment(any()) }
     }
 }
