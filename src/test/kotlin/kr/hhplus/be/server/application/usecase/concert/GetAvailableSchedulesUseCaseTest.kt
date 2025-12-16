@@ -7,6 +7,7 @@ import kr.hhplus.be.server.domain.concert.model.ConcertModel
 import kr.hhplus.be.server.domain.concert.model.ConcertScheduleModel
 import kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
 import kr.hhplus.be.server.domain.concert.service.ConcertService
+import kr.hhplus.be.server.infrastructure.cache.ConcertScheduleCacheService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -18,15 +19,18 @@ class GetAvailableSchedulesUseCaseTest {
     private lateinit var getAvailableSchedulesUseCase: GetAvailableSchedulesUseCase
     private lateinit var concertService: ConcertService
     private lateinit var concertScheduleService: ConcertScheduleService
+    private lateinit var concertScheduleCacheService: ConcertScheduleCacheService
 
     @BeforeEach
     fun setUp() {
         concertService = mockk()
         concertScheduleService = mockk()
+        concertScheduleCacheService = mockk(relaxed = true)
 
         getAvailableSchedulesUseCase = GetAvailableSchedulesUseCase(
             concertService = concertService,
             concertScheduleService = concertScheduleService,
+            concertScheduleCacheService = concertScheduleCacheService,
         )
     }
 
