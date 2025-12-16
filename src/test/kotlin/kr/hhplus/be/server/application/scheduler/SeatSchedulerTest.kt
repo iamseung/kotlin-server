@@ -5,6 +5,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kr.hhplus.be.server.domain.concert.service.SeatService
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
+import kr.hhplus.be.server.infrastructure.cache.SeatCacheService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
@@ -12,7 +13,8 @@ class SeatSchedulerTest {
 
     private val seatService: SeatService = mockk()
     private val reservationService: ReservationService = mockk()
-    private val seatScheduler = SeatScheduler(seatService, reservationService)
+    private val seatCacheService: SeatCacheService = mockk(relaxed = true)
+    private val seatScheduler = SeatScheduler(seatService, reservationService, seatCacheService)
 
     @Test
     @DisplayName("만료된 임시 좌석을 복원한다")

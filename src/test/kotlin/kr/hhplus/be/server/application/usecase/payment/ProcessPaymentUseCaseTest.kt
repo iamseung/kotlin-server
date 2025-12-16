@@ -21,6 +21,7 @@ import kr.hhplus.be.server.domain.reservation.model.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.service.ReservationService
 import kr.hhplus.be.server.domain.user.model.UserModel
 import kr.hhplus.be.server.domain.user.service.UserService
+import kr.hhplus.be.server.infrastructure.cache.SeatCacheService
 import kr.hhplus.be.server.infrastructure.lock.DistributeLockExecutor
 import kr.hhplus.be.server.infrastructure.template.TransactionExecutor
 import org.assertj.core.api.Assertions.assertThat
@@ -41,6 +42,7 @@ class ProcessPaymentUseCaseTest {
     private lateinit var queueTokenService: QueueTokenService
     private lateinit var distributeLockExecutor: DistributeLockExecutor
     private lateinit var transactionExecutor: TransactionExecutor
+    private lateinit var seatCacheService: SeatCacheService
 
     @BeforeEach
     fun setUp() {
@@ -53,6 +55,7 @@ class ProcessPaymentUseCaseTest {
         queueTokenService = mockk()
         distributeLockExecutor = mockk()
         transactionExecutor = mockk()
+        seatCacheService = mockk(relaxed = true)
 
         // Mock the lock executor to just execute the logic
         every {
@@ -80,6 +83,7 @@ class ProcessPaymentUseCaseTest {
             queueTokenService = queueTokenService,
             distributeLockExecutor = distributeLockExecutor,
             transactionExecutor = transactionExecutor,
+            seatCacheService = seatCacheService,
         )
     }
 

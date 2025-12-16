@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.core.type.TypeReference
 import kr.hhplus.be.server.domain.concert.model.SeatModel
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
@@ -48,7 +48,7 @@ class SeatCacheService(
                 log.debug("좌석 캐시 HIT: scheduleId={}", scheduleId)
                 // JSON으로 저장된 데이터를 List<SeatModel>로 변환
                 val jsonString = objectMapper.writeValueAsString(cached)
-                objectMapper.readValue<List<SeatModel>>(jsonString)
+                objectMapper.readValue(jsonString, object : TypeReference<List<SeatModel>>() {})
             } else {
                 log.debug("좌석 캐시 MISS: scheduleId={}", scheduleId)
                 null
