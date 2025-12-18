@@ -215,6 +215,37 @@ class RedisQueueRepository(
     }
 
     /**
+     * Token Entity 배치 조회 (Redis Pipeline 사용)
+     * N+1 쿼리 문제 해결
+     */
+    fun getTokenEntitiesBatch(userIds: List<Long>): List<QueueTokenRedisEntity?> {
+        if (userIds.isEmpty()) return emptyList()
+
+        // Redis Pipeline으로 여러 Hash를 한 번에 조회
+        val results = stringRedisTemplate.executePipelined { connection ->
+            userIds.forEach { userId ->
+                val tokenKey = "$TOKEN_KEY_PREFIX$userId"
+                connection.hashCommands().hGetAll(tokenKey.toByteArray())
+            }
+            null
+        }
+
+        // 결과를 QueueTokenRedisEntity로 변환
+        return results.mapIndexed { index, result ->
+            @Suppress("UNCHECKED_CAST")
+            val hashBytes = result as? Map<ByteArray, ByteArray>
+            if (hashBytes.isNullOrEmpty()) {
+                null
+            } else {
+                // ByteArray Map을 String Map으로 변환
+                val hash = hashBytes.mapKeys { String(it.key) }
+                    .mapValues { String(it.value) }
+                QueueTokenRedisEntity.fromHash(hash)
+            }
+        }
+    }
+
+    /**
      * WAITING Queue의 모든 사용자 조회
      */
     fun getAllWaitingUsers(): List<Long> {
@@ -302,14 +333,12 @@ class RedisQueueRepository(
     override fun findAllByStatus(status: QueueStatus): List<QueueTokenModel> {
         return when (status) {
             QueueStatus.WAITING -> {
-                getAllWaitingUsers().mapNotNull { userId ->
-                    getTokenEntity(userId)?.toModel()
-                }
+                val userIds = getAllWaitingUsers()
+                getTokenEntitiesBatch(userIds).mapNotNull { it?.toModel() }
             }
             QueueStatus.ACTIVE -> {
-                getAllActiveUsers().mapNotNull { userId ->
-                    getTokenEntity(userId)?.toModel()
-                }
+                val userIds = getAllActiveUsers()
+                getTokenEntitiesBatch(userIds).mapNotNull { it?.toModel() }
             }
             QueueStatus.EXPIRED -> {
                 emptyList()

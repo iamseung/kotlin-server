@@ -117,8 +117,68 @@ fun removeTokenMapping(token: String) {
 | **공정성** | 중복 진입으로 순위 왜곡 | 1인 1토큰으로 공정성 보장 |
 | **Redis 안정성** | 시간 경과에 따라 메모리 증가 | 일정 메모리 사용량 유지 |
 
-### 향후 개선 계획 (2~3순위)
-- N+1 쿼리 최적화 (Redis Pipeline 사용)
+#### 3. N+1 쿼리 최적화 🟠 (심각도: 중간) ✅ 완료
+**문제점**: `findAllByStatus()` 메서드에서 개별 토큰 조회 시 N+1 쿼리 발생 → 성능 저하
+
+**해결 방법**:
+- Redis Pipeline 사용하여 배치 조회
+- `getTokenEntitiesBatch()` 메서드로 한 번에 여러 토큰 조회
+
+**구현**:
+```kotlin
+fun getTokenEntitiesBatch(userIds: List<Long>): List<QueueTokenRedisEntity?> {
+    if (userIds.isEmpty()) return emptyList()
+
+    // Redis Pipeline으로 여러 Hash를 한 번에 조회
+    val results = stringRedisTemplate.executePipelined { connection ->
+        userIds.forEach { userId ->
+            val tokenKey = "$TOKEN_KEY_PREFIX$userId"
+            connection.hashCommands().hGetAll(tokenKey.toByteArray())
+        }
+        null
+    }
+
+    // ByteArray Map → String Map 변환
+    return results.mapNotNull { result ->
+        val hashBytes = result as? Map<ByteArray, ByteArray>
+        if (hashBytes.isNullOrEmpty()) null
+        else {
+            val hash = hashBytes.mapKeys { String(it.key) }
+                .mapValues { String(it.value) }
+            QueueTokenRedisEntity.fromHash(hash)
+        }
+    }
+}
+
+// findAllByStatus() 메서드 개선
+override fun findAllByStatus(status: QueueStatus): List<QueueTokenModel> {
+    return when (status) {
+        QueueStatus.WAITING -> {
+            val userIds = getAllWaitingUsers()
+            getTokenEntitiesBatch(userIds).mapNotNull { it?.toModel() }
+        }
+        QueueStatus.ACTIVE -> {
+            val userIds = getAllActiveUsers()
+            getTokenEntitiesBatch(userIds).mapNotNull { it?.toModel() }
+        }
+        QueueStatus.EXPIRED -> emptyList()
+    }
+}
+```
+
+**효과**:
+- ✅ Redis 호출 횟수 대폭 감소 (N+1 → 2회)
+- ✅ 네트워크 왕복 시간 최소화
+- ✅ 대기열 조회 성능 향상 (예: 100명 조회 시 101회 → 2회)
+
+**성능 비교**:
+| 대기열 인원 | 개선 전 (Redis 호출) | 개선 후 (Redis 호출) | 개선율 |
+|------------|-------------------|-------------------|-------|
+| 10명 | 11회 | 2회 | 82% ↓ |
+| 100명 | 101회 | 2회 | 98% ↓ |
+| 1000명 | 1001회 | 2회 | 99.8% ↓ |
+
+### 향후 개선 계획 (3순위)
 - 동적 배치 크기 조정 (트래픽 패턴에 따라 조정)
 - EXPIRED 상태 추적 (감사 로그 및 분석용)
 
