@@ -125,28 +125,47 @@ fun removeTokenMapping(token: String) {
 - `getTokenEntitiesBatch()` 메서드로 한 번에 여러 토큰 조회
 
 **구현**:
-```kotlin
-fun getTokenEntitiesBatch(userIds: List<Long>): List<QueueTokenRedisEntity?> {
-    if (userIds.isEmpty()) return emptyList()
 
-    // Redis Pipeline으로 여러 Hash를 한 번에 조회
+**1. RedisRepository에 Pipeline 배치 조회 메서드 추가**:
+```kotlin
+// RedisRepository.kt
+fun hGetAllBatch(keys: List<String>): List<Map<String, String>> {
+    if (keys.isEmpty()) return emptyList()
+
+    // Pipeline으로 여러 HGETALL 명령을 한 번에 실행
     val results = stringRedisTemplate.executePipelined { connection ->
-        userIds.forEach { userId ->
-            val tokenKey = "$TOKEN_KEY_PREFIX$userId"
-            connection.hashCommands().hGetAll(tokenKey.toByteArray())
+        keys.forEach { key ->
+            connection.hashCommands().hGetAll(key.toByteArray())
         }
         null
     }
 
-    // ByteArray Map → String Map 변환
-    return results.mapNotNull { result ->
-        val hashBytes = result as? Map<ByteArray, ByteArray>
-        if (hashBytes.isNullOrEmpty()) null
-        else {
-            val hash = hashBytes.mapKeys { String(it.key) }
-                .mapValues { String(it.value) }
-            QueueTokenRedisEntity.fromHash(hash)
+    // 결과를 Map<String, String>으로 변환 (ByteArray 처리 캡슐화)
+    return results.map { result ->
+        when (result) {
+            null -> emptyMap()
+            is Map<*, *> -> {
+                result.mapKeys { String(it.key as ByteArray) }
+                    .mapValues { String(it.value as ByteArray) }
+            }
+            else -> emptyMap()
         }
+    }
+}
+```
+
+**2. RedisQueueRepository에서 깔끔하게 사용**:
+```kotlin
+// RedisQueueRepository.kt - ByteArray 처리 필요 없음
+fun getTokenEntitiesBatch(userIds: List<Long>): List<QueueTokenRedisEntity?> {
+    if (userIds.isEmpty()) return emptyList()
+
+    val tokenKeys = userIds.map { "$TOKEN_KEY_PREFIX$it" }
+    val hashMaps = redisRepository.hGetAllBatch(tokenKeys)
+
+    return hashMaps.map { hash ->
+        if (hash.isEmpty()) null
+        else QueueTokenRedisEntity.fromHash(hash)
     }
 }
 
@@ -170,6 +189,9 @@ override fun findAllByStatus(status: QueueStatus): List<QueueTokenModel> {
 - ✅ Redis 호출 횟수 대폭 감소 (N+1 → 2회)
 - ✅ 네트워크 왕복 시간 최소화
 - ✅ 대기열 조회 성능 향상 (예: 100명 조회 시 101회 → 2회)
+- ✅ **코드 품질 개선**: ByteArray 처리 로직을 RedisRepository로 캡슐화
+- ✅ **재사용성 향상**: Pipeline 기능이 다른 도메인에서도 활용 가능
+- ✅ **디버깅 용이성**: String 기반 API로 타입 안전성 및 가독성 향상
 
 **성능 비교**:
 | 대기열 인원 | 개선 전 (Redis 호출) | 개선 후 (Redis 호출) | 개선율 |

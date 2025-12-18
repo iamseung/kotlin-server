@@ -279,6 +279,42 @@ class RedisRepository(
     }
 
     // ========================================
+    // Pipeline Operations
+    // ========================================
+
+    /**
+     * Pipeline으로 여러 Hash를 배치 조회합니다.
+     * N+1 쿼리 문제를 해결하기 위해 사용합니다.
+     *
+     * @param keys 조회할 Redis 키 목록
+     * @return 각 키에 대한 Hash 맵 목록 (존재하지 않으면 빈 맵)
+     */
+    fun hGetAllBatch(keys: List<String>): List<Map<String, String>> {
+        if (keys.isEmpty()) return emptyList()
+
+        // Pipeline으로 여러 HGETALL 명령을 한 번에 실행
+        val results = stringRedisTemplate.executePipelined { connection ->
+            keys.forEach { key ->
+                connection.hashCommands().hGetAll(key.toByteArray())
+            }
+            null
+        }
+
+        // 결과를 Map<String, String>으로 변환
+        return results.map { result ->
+            when (result) {
+                null -> emptyMap()
+                is Map<*, *> -> {
+                    @Suppress("UNCHECKED_CAST")
+                    result.mapKeys { String(it.key as ByteArray) }
+                        .mapValues { String(it.value as ByteArray) }
+                }
+                else -> emptyMap()
+            }
+        }
+    }
+
+    // ========================================
     // Script Operations
     // ========================================
 

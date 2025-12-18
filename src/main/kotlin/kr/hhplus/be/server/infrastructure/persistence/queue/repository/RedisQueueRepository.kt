@@ -7,6 +7,7 @@ import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.domain.queue.repository.QueueTokenRepository
 import kr.hhplus.be.server.infrastructure.persistence.queue.entity.QueueTokenRedisEntity
+import kr.hhplus.be.server.infrastructure.persistence.redis.RedisRepository
 import org.springframework.core.io.ClassPathResource
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.RedisScript
@@ -20,6 +21,7 @@ class RedisQueueRepository(
     private val redisTemplate: RedisTemplate<String, Any>,
     private val stringRedisTemplate: org.springframework.data.redis.core.StringRedisTemplate,
     private val objectMapper: ObjectMapper,
+    private val redisRepository: RedisRepository,
 ) : QueueTokenRepository {
 
     // Lua 스크립트 로드
@@ -221,27 +223,16 @@ class RedisQueueRepository(
     fun getTokenEntitiesBatch(userIds: List<Long>): List<QueueTokenRedisEntity?> {
         if (userIds.isEmpty()) return emptyList()
 
-        // Redis Pipeline으로 여러 Hash를 한 번에 조회
-        val results = stringRedisTemplate.executePipelined { connection ->
-            userIds.forEach { userId ->
-                val tokenKey = "$TOKEN_KEY_PREFIX$userId"
-                connection.hashCommands().hGetAll(tokenKey.toByteArray())
-            }
-            null
-        }
+        // Redis 키 목록 생성
+        val tokenKeys = userIds.map { "$TOKEN_KEY_PREFIX$it" }
 
-        // 결과를 QueueTokenRedisEntity로 변환
-        return results.mapIndexed { index, result ->
-            @Suppress("UNCHECKED_CAST")
-            val hashBytes = result as? Map<ByteArray, ByteArray>
-            if (hashBytes.isNullOrEmpty()) {
-                null
-            } else {
-                // ByteArray Map을 String Map으로 변환
-                val hash = hashBytes.mapKeys { String(it.key) }
-                    .mapValues { String(it.value) }
-                QueueTokenRedisEntity.fromHash(hash)
-            }
+        // RedisRepository의 Pipeline 메서드 사용 (ByteArray 처리 필요 없음)
+        val hashMaps = redisRepository.hGetAllBatch(tokenKeys)
+
+        // Map<String, String>을 QueueTokenRedisEntity로 변환
+        return hashMaps.map { hash ->
+            if (hash.isEmpty()) null
+            else QueueTokenRedisEntity.fromHash(hash)
         }
     }
 
