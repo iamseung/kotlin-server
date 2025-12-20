@@ -7,6 +7,7 @@ import kr.hhplus.be.server.domain.queue.model.QueueStatus
 import kr.hhplus.be.server.domain.queue.model.QueueTokenModel
 import kr.hhplus.be.server.domain.queue.repository.QueueTokenRepository
 import kr.hhplus.be.server.infrastructure.persistence.queue.entity.QueueTokenRedisEntity
+import kr.hhplus.be.server.infrastructure.persistence.redis.RedisRepository
 import org.springframework.core.io.ClassPathResource
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.RedisScript
@@ -20,6 +21,7 @@ class RedisQueueRepository(
     private val redisTemplate: RedisTemplate<String, Any>,
     private val stringRedisTemplate: org.springframework.data.redis.core.StringRedisTemplate,
     private val objectMapper: ObjectMapper,
+    private val redisRepository: RedisRepository,
 ) : QueueTokenRepository {
 
     // Lua 스크립트 로드
@@ -149,11 +151,60 @@ class RedisQueueRepository(
     }
 
     /**
+     * Token → UserId 매핑 삭제 (메모리 누수 방지)
+     */
+    fun removeTokenMapping(token: String) {
+        redisTemplate.delete("$TOKEN_TO_USERID_KEY$token")
+    }
+
+    /**
      * Token Entity 저장
      */
     fun saveTokenEntity(entity: QueueTokenRedisEntity) {
         val tokenKey = "$TOKEN_KEY_PREFIX${entity.userId}"
         stringRedisTemplate.opsForHash<String, String>().putAll(tokenKey, entity.toHash().mapValues { it.value.toString() })
+    }
+
+    /**
+     * 원자적 토큰 생성 (중복 토큰 방지)
+     * 이미 존재하면 기존 토큰 반환, 없으면 새로 생성
+     */
+    fun findOrCreateTokenAtomic(userId: Long): QueueTokenModel {
+        // 1. 기존 토큰 확인 (ACTIVE 또는 WAITING)
+        val existingToken = getTokenEntity(userId)
+        if (existingToken != null) {
+            return existingToken.toModel()
+        }
+
+        // 2. 신규 토큰 생성 (WAITING 상태로)
+        val newToken = QueueTokenModel.create(userId)
+        val entity = QueueTokenRedisEntity.fromDomain(newToken)
+
+        // 3. 토큰 저장 (원자적 연산)
+        val tokenKey = "$TOKEN_KEY_PREFIX${entity.userId}"
+        val saved = stringRedisTemplate.opsForHash<String, String>()
+            .putIfAbsent(tokenKey, "userId", entity.userId.toString())
+
+        // 4. 이미 다른 요청이 저장했다면 기존 토큰 반환
+        if (saved == false) {
+            return getTokenEntity(userId)?.toModel()
+                ?: throw BusinessException(ErrorCode.QUEUE_TOKEN_NOT_FOUND)
+        }
+
+        // 5. 나머지 필드 저장
+        stringRedisTemplate.opsForHash<String, String>()
+            .putAll(tokenKey, entity.toHash().mapValues { it.value.toString() })
+
+        // 6. Token → UserId 매핑 저장
+        redisTemplate.opsForValue().set(
+            "$TOKEN_TO_USERID_KEY${newToken.token}",
+            newToken.userId,
+        )
+
+        // 7. WAITING Queue에 추가
+        addToWaitingQueue(userId)
+
+        return newToken
     }
 
     /**
@@ -163,6 +214,26 @@ class RedisQueueRepository(
         val tokenKey = "$TOKEN_KEY_PREFIX$userId"
         val hash = stringRedisTemplate.opsForHash<String, String>().entries(tokenKey)
         return if (hash.isEmpty()) null else QueueTokenRedisEntity.fromHash(hash)
+    }
+
+    /**
+     * Token Entity 배치 조회 (Redis Pipeline 사용)
+     * N+1 쿼리 문제 해결
+     */
+    fun getTokenEntitiesBatch(userIds: List<Long>): List<QueueTokenRedisEntity?> {
+        if (userIds.isEmpty()) return emptyList()
+
+        // Redis 키 목록 생성
+        val tokenKeys = userIds.map { "$TOKEN_KEY_PREFIX$it" }
+
+        // RedisRepository의 Pipeline 메서드 사용 (ByteArray 처리 필요 없음)
+        val hashMaps = redisRepository.hGetAllBatch(tokenKeys)
+
+        // Map<String, String>을 QueueTokenRedisEntity로 변환
+        return hashMaps.map { hash ->
+            if (hash.isEmpty()) null
+            else QueueTokenRedisEntity.fromHash(hash)
+        }
     }
 
     /**
@@ -253,14 +324,12 @@ class RedisQueueRepository(
     override fun findAllByStatus(status: QueueStatus): List<QueueTokenModel> {
         return when (status) {
             QueueStatus.WAITING -> {
-                getAllWaitingUsers().mapNotNull { userId ->
-                    getTokenEntity(userId)?.toModel()
-                }
+                val userIds = getAllWaitingUsers()
+                getTokenEntitiesBatch(userIds).mapNotNull { it?.toModel() }
             }
             QueueStatus.ACTIVE -> {
-                getAllActiveUsers().mapNotNull { userId ->
-                    getTokenEntity(userId)?.toModel()
-                }
+                val userIds = getAllActiveUsers()
+                getTokenEntitiesBatch(userIds).mapNotNull { it?.toModel() }
             }
             QueueStatus.EXPIRED -> {
                 emptyList()

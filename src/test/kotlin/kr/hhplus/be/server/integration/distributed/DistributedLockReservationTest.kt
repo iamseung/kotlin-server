@@ -247,16 +247,19 @@ class DistributedLockReservationTest @Autowired constructor(
         assertThat(reservationCount).isEqualTo(initialReservationCount + 1)
         assertThat(result.status).isEqualTo(ReservationStatus.TEMPORARY)
 
-        // 3. 토큰 만료
-        val resultToken = queueTokenService.getQueueTokenByToken(queueToken)
-        assertThat(resultToken.queueStatus).isEqualTo(QueueStatus.EXPIRED)
+        // 3. 토큰 만료 (userId로 조회 - 토큰 매핑은 삭제되지만 Hash는 남아있음)
+        val resultToken = redisQueueRepository.findByUserId(user.id)
+        assertThat(resultToken).isNotNull
+        assertThat(resultToken!!.queueStatus).isEqualTo(QueueStatus.EXPIRED)
 
-        println("""
+        println(
+            """
             ✅ 원자성 보장: 3개 작업 함께 커밋
             - 좌석 상태: AVAILABLE → TEMPORARY_RESERVED
             - 예약 생성: ${result.reservationId}
             - 토큰 상태: ACTIVE → EXPIRED
-        """.trimIndent())
+            """.trimIndent(),
+        )
     }
 
     @Test
@@ -315,12 +318,14 @@ class DistributedLockReservationTest @Autowired constructor(
         assertThat(successCount.get()).isEqualTo(testData.size)
         assertThat(avgDuration).isLessThan(500) // 평균 500ms 이하
 
-        println("""
+        println(
+            """
             ✅ 성능 측정:
             - 총 요청: ${testData.size} 회
             - 총 소요시간: ${totalDuration}ms
             - 평균 처리시간: ${avgDuration}ms
             - 성공: ${successCount.get()}
-        """.trimIndent())
+            """.trimIndent(),
+        )
     }
 }
