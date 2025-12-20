@@ -247,9 +247,10 @@ class DistributedLockReservationTest @Autowired constructor(
         assertThat(reservationCount).isEqualTo(initialReservationCount + 1)
         assertThat(result.status).isEqualTo(ReservationStatus.TEMPORARY)
 
-        // 3. 토큰 만료
-        val resultToken = queueTokenService.getQueueTokenByToken(queueToken)
-        assertThat(resultToken.queueStatus).isEqualTo(QueueStatus.EXPIRED)
+        // 3. 토큰 만료 (userId로 조회 - 토큰 매핑은 삭제되지만 Hash는 남아있음)
+        val resultToken = redisQueueRepository.findByUserId(user.id)
+        assertThat(resultToken).isNotNull
+        assertThat(resultToken!!.queueStatus).isEqualTo(QueueStatus.EXPIRED)
 
         println(
             """

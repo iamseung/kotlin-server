@@ -5,6 +5,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import kr.hhplus.be.server.domain.concert.model.SeatModel
 import kr.hhplus.be.server.domain.concert.model.SeatStatus
+import kr.hhplus.be.server.domain.concert.service.ConcertScheduleService
+import kr.hhplus.be.server.domain.concert.service.ConcertService
 import kr.hhplus.be.server.domain.concert.service.SeatService
 import kr.hhplus.be.server.domain.payment.model.PaymentModel
 import kr.hhplus.be.server.domain.payment.model.PaymentStatus
@@ -28,6 +30,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.springframework.context.ApplicationEventPublisher
 import java.time.LocalDateTime
 
 class ProcessPaymentUseCaseTest {
@@ -36,6 +39,8 @@ class ProcessPaymentUseCaseTest {
     private lateinit var userService: UserService
     private lateinit var reservationService: ReservationService
     private lateinit var seatService: SeatService
+    private lateinit var concertScheduleService: ConcertScheduleService
+    private lateinit var concertService: ConcertService
     private lateinit var pointService: PointService
     private lateinit var pointHistoryService: PointHistoryService
     private lateinit var paymentService: PaymentService
@@ -43,12 +48,15 @@ class ProcessPaymentUseCaseTest {
     private lateinit var distributeLockExecutor: DistributeLockExecutor
     private lateinit var transactionExecutor: TransactionExecutor
     private lateinit var seatCacheService: SeatCacheService
+    private lateinit var eventPublisher: ApplicationEventPublisher
 
     @BeforeEach
     fun setUp() {
         userService = mockk()
         reservationService = mockk()
         seatService = mockk()
+        concertScheduleService = mockk()
+        concertService = mockk()
         pointService = mockk()
         pointHistoryService = mockk()
         paymentService = mockk()
@@ -56,6 +64,7 @@ class ProcessPaymentUseCaseTest {
         distributeLockExecutor = mockk()
         transactionExecutor = mockk()
         seatCacheService = mockk(relaxed = true)
+        eventPublisher = mockk(relaxed = true)
 
         // Mock the lock executor to just execute the logic
         every {
@@ -77,6 +86,8 @@ class ProcessPaymentUseCaseTest {
             userService = userService,
             reservationService = reservationService,
             seatService = seatService,
+            concertScheduleService = concertScheduleService,
+            concertService = concertService,
             pointService = pointService,
             pointHistoryService = pointHistoryService,
             paymentService = paymentService,
@@ -84,6 +95,7 @@ class ProcessPaymentUseCaseTest {
             distributeLockExecutor = distributeLockExecutor,
             transactionExecutor = transactionExecutor,
             seatCacheService = seatCacheService,
+            eventPublisher = eventPublisher,
         )
     }
 
@@ -155,6 +167,20 @@ class ProcessPaymentUseCaseTest {
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
         )
+        val schedule = kr.hhplus.be.server.domain.concert.model.ConcertScheduleModel.reconstitute(
+            id = 1L,
+            concertId = 1L,
+            concertDate = LocalDateTime.now().plusDays(7),
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
+        )
+        val concert = kr.hhplus.be.server.domain.concert.model.ConcertModel.reconstitute(
+            id = 1L,
+            title = "Test Concert",
+            description = "Test Description",
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
+        )
 
         every { userService.findById(userId) } returns user
         every { reservationService.findById(reservationId) } returns reservation
@@ -166,6 +192,8 @@ class ProcessPaymentUseCaseTest {
         every { reservationService.update(any()) } returns reservation
         every { queueTokenService.getQueueTokenByToken(queueToken) } returns token
         every { queueTokenService.expireQueueToken(token) } returns token
+        every { concertScheduleService.findById(1L) } returns schedule
+        every { concertService.findById(1L) } returns concert
 
         // when
         val result = processPaymentUseCase.execute(command)
